@@ -2,12 +2,13 @@ import { Platform } from 'react-native';
 import axios from 'axios';
 import useAuthStore from '../store/authStore';
 
-// 10.0.2.2 = Android emulator alias for host localhost
-// On web (browser) we can reach the backend directly at localhost
-const BASE_URL =
+const PROD_URL = 'https://happy-g8kd.onrender.com/api';
+const DEV_URL =
   Platform.OS === 'android'
-    ? 'http://10.0.2.2:5000/api'
+    ? 'http://10.0.2.2:5000/api'   // Android emulator alias for localhost
     : 'http://localhost:5000/api';
+
+const BASE_URL = __DEV__ ? DEV_URL : PROD_URL;
 
 const api = axios.create({
   baseURL: BASE_URL,
