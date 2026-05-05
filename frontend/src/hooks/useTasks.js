@@ -1,5 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import api from '../services/api';
+import { scheduleTaskReminder, cancelTaskReminder } from '../services/notifications';
 
 export const useTasks = () => {
   return useQuery({
@@ -15,11 +16,13 @@ export const useCreateTask = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async ({ title, type }) => {
-      const { data } = await api.post('/tasks', { title, type });
+    mutationFn: async ({ title, type, repeatType, scheduledTime }) => {
+      const { data } = await api.post('/tasks', { title, type, repeatType, scheduledTime });
       return data.task;
     },
-    onSuccess: () => {
+    onSuccess: (task) => {
+      // Schedule reminder if task has a time set
+      if (task?.scheduledTime) scheduleTaskReminder(task);
       queryClient.invalidateQueries({ queryKey: ['tasks'] });
     },
   });
@@ -63,7 +66,9 @@ export const useCompleteTask = () => {
     },
 
     // Always sync with server truth after mutation settles (success or error)
-    onSettled: () => {
+    onSettled: (_data, _err, taskId) => {
+      // Cancel any scheduled reminder — task is now done
+      cancelTaskReminder(taskId);
       queryClient.invalidateQueries({ queryKey: ['tasks'] });
       queryClient.invalidateQueries({ queryKey: ['feed'] });
       queryClient.invalidateQueries({ queryKey: ['streak'] });
@@ -78,8 +83,21 @@ export const useDeleteTask = () => {
     mutationFn: async (taskId) => {
       await api.delete(`/tasks/${taskId}`);
     },
-    onSuccess: () => {
+    onSuccess: (_data, taskId) => {
+      // Cancel any scheduled reminder for this task
+      cancelTaskReminder(taskId);
       queryClient.invalidateQueries({ queryKey: ['tasks'] });
+      queryClient.invalidateQueries({ queryKey: ['completedTasks'] });
+    },
+  });
+};
+
+export const useCompletedTasks = () => {
+  return useQuery({
+    queryKey: ['completedTasks'],
+    queryFn: async () => {
+      const { data } = await api.get('/tasks/completed');
+      return data.tasks;
     },
   });
 };

@@ -1,19 +1,27 @@
 const Task = require('../models/Task');
 const FeedItem = require('../models/FeedItem');
 const { awardXP } = require('../services/xpService');
+const { resetRepeatTasks } = require('../services/resetService');
 const createError = require('../utils/createError');
 const { sendSuccess } = require('../utils/response');
 
-// GET /api/tasks
+// GET /api/tasks — returns only pending tasks (after lazily resetting repeating ones)
 const getTasks = async (req, res) => {
-  const tasks = await Task.find({ user: req.user._id }).sort({ createdAt: -1 });
+  await resetRepeatTasks(req.user._id);
+  const tasks = await Task.find({ user: req.user._id, status: 'pending' }).sort({ createdAt: -1 });
+  sendSuccess(res, { tasks });
+};
+
+// GET /api/tasks/completed
+const getCompletedTasks = async (req, res) => {
+  const tasks = await Task.find({ user: req.user._id, status: 'completed' }).sort({ completedAt: -1 });
   sendSuccess(res, { tasks });
 };
 
 // POST /api/tasks
 const createTask = async (req, res) => {
   const title = req.body.title?.trim();
-  const { type } = req.body;
+  const { type, repeatType, scheduledTime } = req.body;
 
   if (!title) throw createError('Title is required', 400);
 
@@ -21,6 +29,8 @@ const createTask = async (req, res) => {
     user: req.user._id,
     title,
     type: type || 'task',
+    repeatType: repeatType || 'none',
+    scheduledTime: scheduledTime || null,
   });
 
   sendSuccess(res, { task }, 201);
@@ -37,6 +47,7 @@ const completeTask = async (req, res) => {
 
   const completedAt = new Date();
   task.isCompleted = true;
+  task.status = 'completed';
   task.completedAt = completedAt;
   task.xpAwarded = xpAwarded;
   await task.save();
@@ -53,13 +64,17 @@ const completeTask = async (req, res) => {
   sendSuccess(res, { task, xpAwarded });
 };
 
-// DELETE /api/tasks/:id
+// DELETE /api/tasks/:id — soft delete
 const deleteTask = async (req, res) => {
-  const task = await Task.findOneAndDelete({ _id: req.params.id, user: req.user._id });
+  const task = await Task.findOneAndUpdate(
+    { _id: req.params.id, user: req.user._id, status: { $ne: 'deleted' } },
+    { $set: { status: 'deleted' } },
+    { new: true }
+  );
 
   if (!task) throw createError('Task not found', 404);
 
   sendSuccess(res, { message: 'Task deleted' });
 };
 
-module.exports = { getTasks, createTask, completeTask, deleteTask };
+module.exports = { getTasks, getCompletedTasks, createTask, completeTask, deleteTask };

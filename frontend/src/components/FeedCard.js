@@ -1,5 +1,5 @@
-import React from 'react';
-import { View, Text, StyleSheet } from 'react-native';
+import React, { useEffect, useRef } from 'react';
+import { View, Text, StyleSheet, Animated } from 'react-native';
 
 const TYPE_META = {
   task:       { icon: '✅', label: 'Task',       bg: '#1a1f2e', color: '#60a5fa' },
@@ -24,8 +24,26 @@ const timeAgo = (dateStr) => {
 export default function FeedCard({ item }) {
   const meta = TYPE_META[item.type] || TYPE_META.other;
 
+  const opacity = useRef(new Animated.Value(0)).current;
+  const translateY = useRef(new Animated.Value(12)).current;
+
+  useEffect(() => {
+    Animated.parallel([
+      Animated.timing(opacity, {
+        toValue: 1,
+        duration: 280,
+        useNativeDriver: true,
+      }),
+      Animated.timing(translateY, {
+        toValue: 0,
+        duration: 280,
+        useNativeDriver: true,
+      }),
+    ]).start();
+  }, []);
+
   return (
-    <View style={styles.card}>
+    <Animated.View style={[styles.card, { opacity, transform: [{ translateY }] }]}>
       <View style={styles.row}>
         {/* Icon */}
         <Text style={styles.icon}>{meta.icon}</Text>
@@ -47,24 +65,24 @@ export default function FeedCard({ item }) {
           <Text style={styles.xpText}>+{item.xpAwarded} XP</Text>
         </View>
       </View>
-    </View>
+    </Animated.View>
   );
 }
 
 const styles = StyleSheet.create({
   card: {
-    backgroundColor: '#1a1a1a',
-    borderRadius: 14,
+    backgroundColor: '#1a1a2e',
+    borderRadius: 16,
     padding: 16,
     marginHorizontal: 16,
-    marginVertical: 6,
+    marginVertical: 5,
     borderWidth: 1,
-    borderColor: '#2a2a2a',
+    borderColor: '#2a2a3a',
   },
   row: { flexDirection: 'row', alignItems: 'center' },
   icon: { fontSize: 24, marginRight: 12 },
   content: { flex: 1 },
-  title: { color: '#fff', fontSize: 15, fontWeight: '600', marginBottom: 6 },
+  title: { color: '#fff', fontSize: 15, fontWeight: '600', marginBottom: 6, lineHeight: 22 },
   metaRow: { flexDirection: 'row', alignItems: 'center', gap: 8 },
   badge: {
     borderRadius: 6,
@@ -72,7 +90,7 @@ const styles = StyleSheet.create({
     paddingVertical: 2,
   },
   badgeText: { fontSize: 11, fontWeight: '600' },
-  time: { color: '#555', fontSize: 12 },
+  time: { color: '#888', fontSize: 12 },
   xpBadge: {
     backgroundColor: '#1f3a1f',
     borderRadius: 8,

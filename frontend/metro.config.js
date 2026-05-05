@@ -21,6 +21,15 @@ config.resolver.resolveRequest = (context, moduleName, platform) => {
       type: 'sourceFile',
     };
   }
+  if (
+    platform === 'web' &&
+    moduleName === '@react-native-community/datetimepicker'
+  ) {
+    return {
+      filePath: path.resolve(__dirname, 'src/shims/datetimepicker.web.js'),
+      type: 'sourceFile',
+    };
+  }
   return context.resolveRequest(context, moduleName, platform);
 };
 

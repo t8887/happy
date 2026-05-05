@@ -37,8 +37,12 @@ export default function FeedScreen({ navigation }) {
           <Text style={styles.greeting}>Hey, {summary?.username || user?.username} 👋</Text>
           <Text style={styles.subGreeting}>Keep the streak alive!</Text>
         </View>
-        <TouchableOpacity onPress={clearAuth}>
-          <Text style={styles.logout}>Logout</Text>
+        <TouchableOpacity onPress={() => navigation.navigate('Profile')}>
+          <View style={styles.avatarBtn}>
+            <Text style={styles.avatarBtnText}>
+              {(user?.username || '?').charAt(0).toUpperCase()}
+            </Text>
+          </View>
         </TouchableOpacity>
       </View>
 
@@ -69,8 +73,9 @@ export default function FeedScreen({ navigation }) {
           refreshControl={<RefreshControl refreshing={isRefetching} onRefresh={handleRefresh} tintColor="#fff" />}
           ListEmptyComponent={
             <View style={styles.empty}>
-              <Text style={styles.emptyText}>No completed tasks yet.</Text>
-              <Text style={styles.emptySubText}>Complete a task to see it here!</Text>
+              <Text style={styles.emptyEmoji}>🌱</Text>
+              <Text style={styles.emptyText}>Nothing here yet</Text>
+              <Text style={styles.emptySubText}>Every streak starts with a single task. Complete one and watch your feed grow!</Text>
             </View>
           }
         />
@@ -85,31 +90,41 @@ export default function FeedScreen({ navigation }) {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#0f0f0f' },
+  container: { flex: 1, backgroundColor: '#0f0f1a' },
   header: {
     flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center',
-    paddingHorizontal: 20, paddingTop: 60, paddingBottom: 16,
+    paddingHorizontal: 20, paddingTop: 60, paddingBottom: 20,
   },
-  greeting: { color: '#fff', fontSize: 22, fontWeight: '700' },
-  subGreeting: { color: '#555', fontSize: 13, marginTop: 2 },
+  greeting: { color: '#fff', fontSize: 22, fontWeight: '700', letterSpacing: 0.3 },
+  subGreeting: { color: '#888', fontSize: 13, marginTop: 3 },
   logout: { color: '#555', fontSize: 14 },
   statsRow: {
-    flexDirection: 'row', marginHorizontal: 16, marginBottom: 8,
-    backgroundColor: '#1a1a1a', borderRadius: 14, padding: 16,
-    borderWidth: 1, borderColor: '#2a2a2a',
+    flexDirection: 'row', marginHorizontal: 16, marginBottom: 16,
+    backgroundColor: '#1a1a2e', borderRadius: 16, padding: 18,
+    borderWidth: 1, borderColor: '#2a2a3a',
   },
   statBox: { flex: 1, alignItems: 'center' },
   statValue: { color: '#fff', fontSize: 20, fontWeight: '700' },
-  statLabel: { color: '#555', fontSize: 12, marginTop: 2 },
-  statDivider: { width: 1, backgroundColor: '#2a2a2a', marginHorizontal: 8 },
+  statLabel: { color: '#888', fontSize: 12, marginTop: 4 },
+  statDivider: { width: 1, backgroundColor: '#2a2a3a', marginHorizontal: 8 },
   errorText: { color: '#f87171', textAlign: 'center', marginTop: 40, fontSize: 14 },
-  empty: { alignItems: 'center', marginTop: 60 },
-  emptyText: { color: '#fff', fontSize: 18, fontWeight: '600' },
-  emptySubText: { color: '#555', fontSize: 14, marginTop: 6 },
+  empty: {
+    alignItems: 'center', marginTop: 72, marginHorizontal: 32,
+    backgroundColor: '#1a1a2e', borderRadius: 20, padding: 32,
+    borderWidth: 1, borderColor: '#2a2a3a',
+  },
+  emptyEmoji: { fontSize: 48, marginBottom: 16 },
+  emptyText: { color: '#fff', fontSize: 20, fontWeight: '700', marginBottom: 10 },
+  emptySubText: { color: '#888', fontSize: 14, lineHeight: 22, textAlign: 'center' },
   fab: {
     position: 'absolute', bottom: 32, left: 24, right: 24,
-    backgroundColor: '#fff', borderRadius: 14,
-    paddingVertical: 16, alignItems: 'center',
+    backgroundColor: '#fff', borderRadius: 16,
+    paddingVertical: 17, alignItems: 'center',
   },
   fabText: { color: '#000', fontWeight: '700', fontSize: 16 },
+  avatarBtn: {
+    width: 38, height: 38, borderRadius: 19,
+    backgroundColor: '#6C63FF', justifyContent: 'center', alignItems: 'center',
+  },
+  avatarBtnText: { color: '#fff', fontWeight: '700', fontSize: 16 },
 });

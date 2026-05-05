@@ -1,7 +1,7 @@
 {
   "expo": {
     "name": "LifeFeed",
-    "slug": "lifefeed",
+    "slug": "happy",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
@@ -25,6 +25,29 @@
     },
     "web": {
       "favicon": "./assets/favicon.png"
-    }
+    },
+    "plugins": [
+      [
+        "expo-notifications",
+        {
+          "icon": "./assets/icon.png",
+          "color": "#6C63FF"
+        }
+      ],
+      "@react-native-community/datetimepicker",
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "Allow Happy to access your photos to set a profile picture.",
+          "cameraPermission": "Allow Happy to use your camera to take a profile picture."
+        }
+      ]
+    ],
+    "extra": {
+      "eas": {
+        "projectId": "12cd2c92-9491-430a-ae4a-dc348accdeea"
+      }
+    },
+    "owner": "t8887"
   }
 }

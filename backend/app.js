@@ -17,6 +17,7 @@ app.get('/health', (req, res) => {
 
 // Routes
 app.use('/api/auth', require('./src/routes/authRoutes'));
+app.use('/api/profile', require('./src/routes/profileRoutes'));
 app.use('/api/tasks', require('./src/routes/taskRoutes'));
 app.use('/api/feed', require('./src/routes/feedRoutes'));
 app.use('/api/streak', require('./src/routes/streakRoutes'));
