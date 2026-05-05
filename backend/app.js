@@ -21,6 +21,9 @@ app.use('/api/profile', require('./src/routes/profileRoutes'));
 app.use('/api/tasks', require('./src/routes/taskRoutes'));
 app.use('/api/feed', require('./src/routes/feedRoutes'));
 app.use('/api/streak', require('./src/routes/streakRoutes'));
+app.use('/api/friends', require('./src/routes/friendRoutes'));
+app.use('/api/users', require('./src/routes/userRoutes'));
+app.use('/api/messages', require('./src/routes/messageRoutes'));
 
 // Error handling middleware (must be last)
 app.use(errorHandler);

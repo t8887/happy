@@ -1,8 +1,9 @@
 import React from 'react';
 import {
-  View, Text, FlatList, StyleSheet,
+  View, Text, FlatList, StyleSheet, Image,
   TouchableOpacity, ActivityIndicator, RefreshControl,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { useFeed, useStreak } from '../hooks/useFeed';
 import FeedCard from '../components/FeedCard';
 import useAuthStore from '../store/authStore';
@@ -21,41 +22,48 @@ export default function FeedScreen({ navigation }) {
   };
 
   // Streak flame label: changes based on streak count
-  const streakLabel = () => {
-    const n = streak?.current ?? summary?.streak ?? 0;
-    if (n === 0) return '😴 No streak';
-    if (n < 3)   return `🔥 ${n} Day Streak`;
-    if (n < 7)   return `🔥🔥 ${n} Day Streak`;
-    return             `🔥🔥🔥 ${n} Day Streak`;
+  const streakCount = streak?.current ?? summary?.streak ?? 0;
+  const streakIcon = () => {
+    if (streakCount === 0) return '😴';
+    if (streakCount < 3)  return '🔥';
+    if (streakCount < 7)  return '🔥🔥';
+    return                       '🔥🔥🔥';
   };
+  const xp = streak?.xp ?? summary?.xp ?? 0;
 
   return (
-    <View style={styles.container}>
+    <SafeAreaView style={styles.container} edges={['top']}>
       {/* Header */}
       <View style={styles.header}>
-        <View>
+        <View style={styles.headerLeft}>
           <Text style={styles.greeting}>Hey, {summary?.username || user?.username} 👋</Text>
           <Text style={styles.subGreeting}>Keep the streak alive!</Text>
         </View>
-        <TouchableOpacity onPress={() => navigation.navigate('Profile')}>
-          <View style={styles.avatarBtn}>
-            <Text style={styles.avatarBtnText}>
-              {(user?.username || '?').charAt(0).toUpperCase()}
-            </Text>
-          </View>
+        <TouchableOpacity onPress={() => navigation.navigate('Profile')} activeOpacity={0.8}>
+          {user?.avatar ? (
+            <Image source={{ uri: user.avatar }} style={styles.avatarBtn} />
+          ) : (
+            <View style={styles.avatarBtn}>
+              <Text style={styles.avatarBtnText}>
+                {(user?.username || '?').charAt(0).toUpperCase()}
+              </Text>
+            </View>
+          )}
         </TouchableOpacity>
       </View>
 
-      {/* XP + Streak summary */}
-      <View style={styles.statsRow}>
-        <View style={styles.statBox}>
-          <Text style={styles.statValue}>⚡ {streak?.xp ?? summary?.xp ?? 0}</Text>
-          <Text style={styles.statLabel}>Total XP</Text>
+      {/* XP + Streak card */}
+      <View style={styles.statsCard}>
+        <View style={styles.statItem}>
+          <Text style={styles.statIcon}>⚡</Text>
+          <Text style={styles.statNumber}>{xp.toLocaleString()}</Text>
+          <Text style={styles.statLabel}>TOTAL XP</Text>
         </View>
         <View style={styles.statDivider} />
-        <View style={styles.statBox}>
-          <Text style={styles.statValue}>{streakLabel()}</Text>
-          <Text style={styles.statLabel}>Current Streak</Text>
+        <View style={styles.statItem}>
+          <Text style={styles.statIcon}>{streakIcon()}</Text>
+          <Text style={styles.statNumber}>{streakCount}</Text>
+          <Text style={styles.statLabel}>{streakCount === 1 ? 'DAY STREAK' : 'DAY STREAK'}</Text>
         </View>
       </View>
 
@@ -81,32 +89,86 @@ export default function FeedScreen({ navigation }) {
         />
       )}
 
-      {/* FAB */}
-      <TouchableOpacity style={styles.fab} onPress={() => navigation.navigate('AddTask')}>
-        <Text style={styles.fabText}>+ Add Task</Text>
-      </TouchableOpacity>
-    </View>
+      {/* FAB Row */}
+      <View style={styles.fabRow}>
+        <TouchableOpacity style={styles.fabSecondary} onPress={() => navigation.navigate('PendingTasks')}>
+          <Text style={styles.fabSecondaryText}>📋 Tasks</Text>
+        </TouchableOpacity>
+        <TouchableOpacity style={styles.fab} onPress={() => navigation.navigate('AddTask')}>
+          <Text style={styles.fabText}>+ Add Task</Text>
+        </TouchableOpacity>
+      </View>
+    </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#0f0f1a' },
   header: {
-    flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center',
-    paddingHorizontal: 20, paddingTop: 60, paddingBottom: 20,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingHorizontal: 20,
+    paddingTop: 12,
+    paddingBottom: 20,
   },
+  headerLeft: { flex: 1, marginRight: 12 },
   greeting: { color: '#fff', fontSize: 22, fontWeight: '700', letterSpacing: 0.3 },
-  subGreeting: { color: '#888', fontSize: 13, marginTop: 3 },
+  subGreeting: { color: '#555', fontSize: 13, marginTop: 3 },
   logout: { color: '#555', fontSize: 14 },
-  statsRow: {
-    flexDirection: 'row', marginHorizontal: 16, marginBottom: 16,
-    backgroundColor: '#1a1a2e', borderRadius: 16, padding: 18,
-    borderWidth: 1, borderColor: '#2a2a3a',
+  avatarBtn: {
+    width: 42, height: 42, borderRadius: 21,
+    backgroundColor: '#6C63FF', justifyContent: 'center', alignItems: 'center',
+    borderWidth: 2, borderColor: '#6C63FF55',
+    overflow: 'hidden',
   },
-  statBox: { flex: 1, alignItems: 'center' },
-  statValue: { color: '#fff', fontSize: 20, fontWeight: '700' },
-  statLabel: { color: '#888', fontSize: 12, marginTop: 4 },
-  statDivider: { width: 1, backgroundColor: '#2a2a3a', marginHorizontal: 8 },
+  avatarBtnText: { color: '#fff', fontWeight: '700', fontSize: 16 },
+  // ── Stats card ────────────────────────────────────────────────────────────
+  statsCard: {
+    flexDirection: 'row',
+    marginHorizontal: 16,
+    marginBottom: 16,
+    backgroundColor: '#1a1a2e',
+    borderRadius: 20,
+    borderWidth: 1,
+    borderColor: '#2a2a3a',
+    overflow: 'hidden',
+    // subtle shadow on Android
+    elevation: 4,
+    // iOS shadow
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.25,
+    shadowRadius: 6,
+  },
+  statItem: {
+    flex: 1,
+    paddingVertical: 20,
+    paddingHorizontal: 12,
+    alignItems: 'center',
+    gap: 2,
+  },
+  statIcon: { fontSize: 22, marginBottom: 4 },
+  statNumber: {
+    color: '#fff',
+    fontSize: 28,
+    fontWeight: '800',
+    letterSpacing: -0.5,
+    lineHeight: 32,
+  },
+  statLabel: {
+    color: '#555',
+    fontSize: 10,
+    fontWeight: '600',
+    marginTop: 4,
+    letterSpacing: 1.2,
+  },
+  statDivider: {
+    width: 1,
+    backgroundColor: '#2a2a3a',
+    marginVertical: 16,
+  },
+  // ─────────────────────────────────────────────────────────────────────────
   errorText: { color: '#f87171', textAlign: 'center', marginTop: 40, fontSize: 14 },
   empty: {
     alignItems: 'center', marginTop: 72, marginHorizontal: 32,
@@ -116,15 +178,19 @@ const styles = StyleSheet.create({
   emptyEmoji: { fontSize: 48, marginBottom: 16 },
   emptyText: { color: '#fff', fontSize: 20, fontWeight: '700', marginBottom: 10 },
   emptySubText: { color: '#888', fontSize: 14, lineHeight: 22, textAlign: 'center' },
-  fab: {
+  fabRow: {
     position: 'absolute', bottom: 32, left: 24, right: 24,
-    backgroundColor: '#fff', borderRadius: 16,
+    flexDirection: 'row', gap: 10,
+  },
+  fab: {
+    flex: 2, backgroundColor: '#fff', borderRadius: 16,
     paddingVertical: 17, alignItems: 'center',
   },
   fabText: { color: '#000', fontWeight: '700', fontSize: 16 },
-  avatarBtn: {
-    width: 38, height: 38, borderRadius: 19,
-    backgroundColor: '#6C63FF', justifyContent: 'center', alignItems: 'center',
+  fabSecondary: {
+    flex: 1, backgroundColor: '#1a1a2e', borderRadius: 16,
+    paddingVertical: 17, alignItems: 'center',
+    borderWidth: 1, borderColor: '#6C63FF44',
   },
-  avatarBtnText: { color: '#fff', fontWeight: '700', fontSize: 16 },
+  fabSecondaryText: { color: '#6C63FF', fontWeight: '700', fontSize: 14 },
 });

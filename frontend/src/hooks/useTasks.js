@@ -16,8 +16,8 @@ export const useCreateTask = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async ({ title, type, repeatType, scheduledTime }) => {
-      const { data } = await api.post('/tasks', { title, type, repeatType, scheduledTime });
+    mutationFn: async ({ title, type, repeatType, scheduledTime, image }) => {
+      const { data } = await api.post('/tasks', { title, type, repeatType, scheduledTime, image });
       return data.task;
     },
     onSuccess: (task) => {
@@ -72,6 +72,20 @@ export const useCompleteTask = () => {
       queryClient.invalidateQueries({ queryKey: ['tasks'] });
       queryClient.invalidateQueries({ queryKey: ['feed'] });
       queryClient.invalidateQueries({ queryKey: ['streak'] });
+    },
+  });
+};
+
+export const useUpdateTask = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({ taskId, updates }) => {
+      const { data } = await api.patch(`/tasks/${taskId}`, updates);
+      return data.task;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['tasks'] });
     },
   });
 };

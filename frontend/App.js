@@ -7,7 +7,9 @@ import QueryProvider from './src/services/QueryProvider';
 import useAuthStore from './src/store/authStore';
 import api from './src/services/api';
 import { ToastProvider } from './src/context/ToastContext';
-import { requestNotificationPermission, scheduleDailyMotivation } from './src/services/notifications';
+import { requestNotificationPermission, scheduleDailyMotivation, setupNotificationChannels } from './src/services/notifications';
+import { useBadgeCount } from './src/hooks/useBadgeCount';
+import { navigationRef, registerDeepLinkHandler, unregisterDeepLinkHandler } from './src/services/DeepLinkHandler';
 
 import LoginScreen from './src/screens/LoginScreen';
 import RegisterScreen from './src/screens/RegisterScreen';
@@ -19,6 +21,12 @@ import AddTaskScreen from './src/screens/AddTaskScreen';
 import ProfileScreen from './src/screens/ProfileScreen';
 import CompletedTasksScreen from './src/screens/CompletedTasksScreen';
 import NotificationTestScreen from './src/screens/NotificationTestScreen';
+import SearchUsersScreen from './src/screens/SearchUsersScreen';
+import FriendRequestsScreen from './src/screens/FriendRequestsScreen';
+import FriendListScreen from './src/screens/FriendListScreen';
+import ChatListScreen from './src/screens/ChatListScreen';
+import ChatScreen from './src/screens/ChatScreen';
+import PendingTasksScreen from './src/screens/PendingTasksScreen';
 
 const Stack = createNativeStackNavigator();
 
@@ -42,13 +50,31 @@ function AppStack() {
       <Stack.Screen name="Profile" component={ProfileScreen} />
       <Stack.Screen name="CompletedTasks" component={CompletedTasksScreen} />
       <Stack.Screen name="NotificationTest" component={NotificationTestScreen} />
+      <Stack.Screen name="SearchUsers" component={SearchUsersScreen} options={{ headerShown: true, title: 'Find Friends', headerStyle: { backgroundColor: '#0f0f1a' }, headerTintColor: '#6C63FF', headerTitleStyle: { color: '#fff' } }} />
+      <Stack.Screen name="FriendRequests" component={FriendRequestsScreen} options={{ headerShown: true, title: 'Friend Requests', headerStyle: { backgroundColor: '#0f0f1a' }, headerTintColor: '#6C63FF', headerTitleStyle: { color: '#fff' } }} />
+      <Stack.Screen name="FriendList" component={FriendListScreen} options={{ headerShown: true, title: 'Friends', headerStyle: { backgroundColor: '#0f0f1a' }, headerTintColor: '#6C63FF', headerTitleStyle: { color: '#fff' } }} />
+      <Stack.Screen name="ChatList" component={ChatListScreen} options={{ headerShown: true, title: 'Messages', headerStyle: { backgroundColor: '#0f0f1a' }, headerTintColor: '#6C63FF', headerTitleStyle: { color: '#fff' } }} />
+      <Stack.Screen name="Chat" component={ChatScreen} options={{ headerShown: true, headerStyle: { backgroundColor: '#0f0f1a' }, headerTintColor: '#6C63FF', headerTitleStyle: { color: '#fff' } }} />
+      <Stack.Screen name="PendingTasks" component={PendingTasksScreen} options={{ headerShown: true, title: 'My Tasks', headerStyle: { backgroundColor: '#0f0f1a' }, headerTintColor: '#6C63FF', headerTitleStyle: { color: '#fff' } }} />
     </Stack.Navigator>
   );
+}
+
+// Syncs OS badge count with unread message count. Must live inside QueryProvider.
+function BadgeSync() {
+  useBadgeCount();
+  return null;
 }
 
 export default function App() {
   const { isAuthenticated, token, setAuth, clearAuth, _hydrated } = useAuthStore();
   const [validating, setValidating] = useState(true);
+
+  // Register deep-link handler for notification taps
+  useEffect(() => {
+    registerDeepLinkHandler();
+    return () => unregisterDeepLinkHandler();
+  }, []);
 
   useEffect(() => {
     // Wait for Zustand to rehydrate from storage before validating
@@ -63,10 +89,12 @@ export default function App() {
     api.get('/auth/me')
       .then((res) => {
         setAuth(res.data.user, token);
-        // Schedule daily motivation now that we know user is authenticated
-        requestNotificationPermission().then((granted) => {
-          if (granted) scheduleDailyMotivation();
-        });
+        // Set up Android channels first, then request permission & schedule
+        setupNotificationChannels().then(() =>
+          requestNotificationPermission().then((granted) => {
+            if (granted) scheduleDailyMotivation();
+          })
+        );
       })
       .catch(() => {
         clearAuth();
@@ -87,8 +115,9 @@ export default function App() {
   return (
     <QueryProvider>
       <ToastProvider>
-        <NavigationContainer>
+        <NavigationContainer ref={navigationRef}>
           <StatusBar style="light" />
+          <BadgeSync />
           {isAuthenticated ? <AppStack /> : <AuthStack />}
         </NavigationContainer>
       </ToastProvider>

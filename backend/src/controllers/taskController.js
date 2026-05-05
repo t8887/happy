@@ -21,9 +21,13 @@ const getCompletedTasks = async (req, res) => {
 // POST /api/tasks
 const createTask = async (req, res) => {
   const title = req.body.title?.trim();
-  const { type, repeatType, scheduledTime } = req.body;
+  const { type, repeatType, scheduledTime, image } = req.body;
 
   if (!title) throw createError('Title is required', 400);
+
+  if (image && Buffer.byteLength(image, 'utf8') > 300 * 1024) {
+    throw createError('Image too large (max 300 KB)', 400);
+  }
 
   const task = await Task.create({
     user: req.user._id,
@@ -31,6 +35,7 @@ const createTask = async (req, res) => {
     type: type || 'task',
     repeatType: repeatType || 'none',
     scheduledTime: scheduledTime || null,
+    image: image || '',
   });
 
   sendSuccess(res, { task }, 201);
@@ -59,9 +64,36 @@ const completeTask = async (req, res) => {
     type: task.type,
     xpAwarded,
     completedAt,
+    taskImage: task.image || '',
   });
 
   sendSuccess(res, { task, xpAwarded });
+};
+
+// PATCH /api/tasks/:id — edit a pending task
+const updateTask = async (req, res) => {
+  const { title, type, repeatType, scheduledTime, image } = req.body;
+
+  const task = await Task.findOne({ _id: req.params.id, user: req.user._id, status: 'pending' });
+  if (!task) throw createError('Task not found', 404);
+
+  if (title !== undefined) {
+    const trimmed = title.trim();
+    if (!trimmed) throw createError('Title cannot be empty', 400);
+    task.title = trimmed;
+  }
+  if (type !== undefined) task.type = type;
+  if (repeatType !== undefined) task.repeatType = repeatType;
+  if (scheduledTime !== undefined) task.scheduledTime = scheduledTime || null;
+  if (image !== undefined) {
+    if (image && Buffer.byteLength(image, 'utf8') > 300 * 1024) {
+      throw createError('Image too large (max 300 KB)', 400);
+    }
+    task.image = image;
+  }
+
+  await task.save();
+  sendSuccess(res, { task });
 };
 
 // DELETE /api/tasks/:id — soft delete
@@ -77,4 +109,4 @@ const deleteTask = async (req, res) => {
   sendSuccess(res, { message: 'Task deleted' });
 };
 
-module.exports = { getTasks, getCompletedTasks, createTask, completeTask, deleteTask };
+module.exports = { getTasks, getCompletedTasks, createTask, completeTask, updateTask, deleteTask };

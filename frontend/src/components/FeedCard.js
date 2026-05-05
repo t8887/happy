@@ -1,5 +1,5 @@
 import React, { useEffect, useRef } from 'react';
-import { View, Text, StyleSheet, Animated } from 'react-native';
+import { View, Text, StyleSheet, Animated, Image } from 'react-native';
 
 const TYPE_META = {
   task:       { icon: '✅', label: 'Task',       bg: '#1a1f2e', color: '#60a5fa' },
@@ -65,6 +65,9 @@ export default function FeedCard({ item }) {
           <Text style={styles.xpText}>+{item.xpAwarded} XP</Text>
         </View>
       </View>
+      {!!item.taskImage && (
+        <Image source={{ uri: item.taskImage }} style={styles.taskImage} />
+      )}
     </Animated.View>
   );
 }
@@ -98,4 +101,7 @@ const styles = StyleSheet.create({
     paddingVertical: 4,
   },
   xpText: { color: '#4ade80', fontSize: 12, fontWeight: '700' },
+  taskImage: {
+    width: '100%', height: 150, borderRadius: 10, marginTop: 10,
+  },
 });

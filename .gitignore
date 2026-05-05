@@ -4,6 +4,9 @@ node_modules/
 # Environment variables — never commit secrets
 backend/.env
 frontend/.env
+
+backend/node_modules/
+frontend/node_modules/
 .env
 
 # Expo

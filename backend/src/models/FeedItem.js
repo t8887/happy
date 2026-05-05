@@ -41,6 +41,10 @@ const feedItemSchema = new mongoose.Schema(
       required: true,
       default: Date.now,
     },
+    taskImage: {
+      type: String,
+      default: '',
+    },
   },
   { timestamps: true }
 );

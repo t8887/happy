@@ -188,6 +188,22 @@ export default function ProfileScreen({ navigation }) {
           </View>
         )}
 
+        {/* Social buttons */}
+        <View style={styles.socialRow}>
+          <TouchableOpacity style={styles.socialBtn} onPress={() => navigation.navigate('FriendList')}>
+            <Text style={styles.socialBtnText}>👥 Friends</Text>
+          </TouchableOpacity>
+          <TouchableOpacity style={styles.socialBtn} onPress={() => navigation.navigate('FriendRequests')}>
+            <Text style={styles.socialBtnText}>📬 Requests</Text>
+          </TouchableOpacity>
+          <TouchableOpacity style={styles.socialBtn} onPress={() => navigation.navigate('ChatList')}>
+            <Text style={styles.socialBtnText}>💬 Messages</Text>
+          </TouchableOpacity>
+          <TouchableOpacity style={styles.socialBtn} onPress={() => navigation.navigate('SearchUsers')}>
+            <Text style={styles.socialBtnText}>🔍 Find People</Text>
+          </TouchableOpacity>
+        </View>
+
         {/* Sign out */}
         <TouchableOpacity style={styles.signOutBtn} onPress={clearAuth}>
           <Text style={styles.signOutText}>Sign Out</Text>
@@ -236,6 +252,13 @@ const styles = StyleSheet.create({
     borderWidth: 1, borderColor: '#6C63FF',
   },
   changePhotoText: { color: '#6C63FF', fontSize: 13, fontWeight: '600' },
+  socialRow: { flexDirection: 'row', gap: 8, marginBottom: 16 },
+  socialBtn: {
+    flex: 1, backgroundColor: '#1a1a2e', borderRadius: 12,
+    paddingVertical: 12, alignItems: 'center',
+    borderWidth: 1, borderColor: '#2a2a3e',
+  },
+  socialBtnText: { color: '#ccc', fontSize: 12, fontWeight: '600' },
 
   statsRow: {
     flexDirection: 'row', backgroundColor: '#1A1A2E',

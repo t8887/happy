@@ -1,9 +1,10 @@
 import React, { useState, useRef } from 'react';
 import {
   View, Text, TextInput, TouchableOpacity,
-  StyleSheet, ActivityIndicator,
-  ScrollView, KeyboardAvoidingView, Platform, Animated, Modal,
+  StyleSheet, ActivityIndicator, Image,
+  ScrollView, KeyboardAvoidingView, Platform, Animated, Modal, Alert,
 } from 'react-native';
+import * as ImagePicker from 'expo-image-picker';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { useCreateTask, useTasks, useCompleteTask, useDeleteTask } from '../hooks/useTasks';
 import { useToast } from '../context/ToastContext';
@@ -31,6 +32,7 @@ export default function AddTaskScreen({ navigation }) {
   const [scheduledTime, setScheduledTime] = useState('');   // "HH:MM" string sent to API
   const [pickerDate, setPickerDate] = useState(new Date()); // Date object for the picker
   const [showPicker, setShowPicker] = useState(false);
+  const [taskImage, setTaskImage] = useState(null); // base64 string or null
   const { showToast } = useToast();
 
   const { data: tasks = [], isLoading } = useTasks();
@@ -50,12 +52,13 @@ export default function AddTaskScreen({ navigation }) {
     const timeValue = timeInput.length > 0 ? timeInput : null;
 
     createTask(
-      { title: title.trim(), type: selectedType, repeatType: selectedRepeat, scheduledTime: timeValue },
+      { title: title.trim(), type: selectedType, repeatType: selectedRepeat, scheduledTime: timeValue, image: taskImage || '' },
       {
         onSuccess: () => {
           setTitle('');
           setSelectedRepeat('none');
           setScheduledTime('');
+          setTaskImage(null);
           showToast('Task added!', 'success');
         },
         onError: (err) => showToast(err?.response?.data?.message || 'Failed to create task', 'error'),
@@ -68,6 +71,33 @@ export default function AddTaskScreen({ navigation }) {
       onSuccess: (data) => showToast(`Task complete! +${data.xpAwarded} XP 🎉`, 'success'),
       onError: (err) => showToast(err?.response?.data?.message || 'Failed to complete task', 'error'),
     });
+  };
+
+  const pickTaskImage = async () => {
+    Alert.alert('Add Photo', 'Choose a source', [
+      {
+        text: 'Camera', onPress: async () => {
+          const result = await ImagePicker.launchCameraAsync({
+            allowsEditing: true, aspect: [4, 3], quality: 0.5, base64: true,
+          });
+          if (!result.canceled && result.assets[0].base64) {
+            setTaskImage(`data:image/jpeg;base64,${result.assets[0].base64}`);
+          }
+        },
+      },
+      {
+        text: 'Gallery', onPress: async () => {
+          const result = await ImagePicker.launchImageLibraryAsync({
+            allowsEditing: true, aspect: [4, 3], quality: 0.5, base64: true,
+          });
+          if (!result.canceled && result.assets[0].base64) {
+            setTaskImage(`data:image/jpeg;base64,${result.assets[0].base64}`);
+          }
+        },
+      },
+      { text: 'Remove', style: 'destructive', onPress: () => setTaskImage(null) },
+      { text: 'Cancel', style: 'cancel' },
+    ]);
   };
 
   const animateDone = (scale, onFinish) => {
@@ -216,6 +246,15 @@ export default function AddTaskScreen({ navigation }) {
               }}
             />
           )}
+
+          {/* Image picker */}
+          <TouchableOpacity style={styles.imagePickerBtn} onPress={pickTaskImage}>
+            {taskImage ? (
+              <Image source={{ uri: taskImage }} style={styles.imagePreview} />
+            ) : (
+              <Text style={styles.imagePickerText}>📷  Add Photo (optional)</Text>
+            )}
+          </TouchableOpacity>
 
           <TouchableOpacity style={styles.btn} onPress={handleCreate} disabled={isCreating}>
             {isCreating ? <ActivityIndicator color="#000" /> : <Text style={styles.btnText}>Add Task</Text>}
@@ -378,4 +417,11 @@ const styles = StyleSheet.create({
     borderWidth: 1, borderColor: '#2a2a3a', alignItems: 'center',
   },
   completedLinkText: { color: '#6C63FF', fontWeight: '600', fontSize: 15 },
+  imagePickerBtn: {
+    backgroundColor: '#1a1a2e', borderRadius: 12, borderWidth: 1,
+    borderColor: '#2a2a3a', borderStyle: 'dashed',
+    paddingVertical: 14, alignItems: 'center', justifyContent: 'center', overflow: 'hidden',
+  },
+  imagePickerText: { color: '#888', fontSize: 14 },
+  imagePreview: { width: '100%', height: 140, borderRadius: 12 },
 });

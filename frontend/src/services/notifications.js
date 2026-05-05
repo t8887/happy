@@ -4,6 +4,49 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const REMINDERS_KEY = 'task_reminder_ids'; // { [taskId]: notificationId }
 
+// ─── Channel IDs ─────────────────────────────────────────────────────────────
+export const CHANNEL_TASKS    = 'task-reminders';
+export const CHANNEL_MESSAGES = 'messages';
+export const CHANNEL_GENERAL  = 'general';
+
+/**
+ * Create Android notification channels.
+ * Must be called before scheduling any notifications.
+ * Safe to call multiple times — Android no-ops if channel already exists.
+ */
+export const setupNotificationChannels = async () => {
+  if (Platform.OS !== 'android') return;
+
+  await Notifications.setNotificationChannelAsync(CHANNEL_TASKS, {
+    name: 'Task Reminders',
+    description: 'Daily reminders for your scheduled tasks',
+    importance: Notifications.AndroidImportance.HIGH,
+    sound: 'default',
+    vibrationPattern: [0, 250, 250, 250],
+    enableVibrate: true,
+    lockscreenVisibility: Notifications.AndroidNotificationVisibility.PUBLIC,
+  });
+
+  await Notifications.setNotificationChannelAsync(CHANNEL_MESSAGES, {
+    name: 'Messages',
+    description: 'New message notifications from friends',
+    importance: Notifications.AndroidImportance.HIGH,
+    sound: 'default',
+    vibrationPattern: [0, 150],
+    enableVibrate: true,
+    lockscreenVisibility: Notifications.AndroidNotificationVisibility.PRIVATE,
+  });
+
+  await Notifications.setNotificationChannelAsync(CHANNEL_GENERAL, {
+    name: 'General',
+    description: 'Daily motivation and general app notifications',
+    importance: Notifications.AndroidImportance.DEFAULT,
+    sound: 'default',
+    enableVibrate: false,
+    lockscreenVisibility: Notifications.AndroidNotificationVisibility.PUBLIC,
+  });
+};
+
 const getStoredReminders = async () => {
   try {
     const raw = await AsyncStorage.getItem(REMINDERS_KEY);
@@ -36,8 +79,8 @@ const MOTIVATIONAL_QUOTES = [
 Notifications.setNotificationHandler({
   handleNotification: async () => ({
     shouldShowAlert: true,
-    shouldPlaySound: false,
-    shouldSetBadge: false,
+    shouldPlaySound: true,
+    shouldSetBadge: true,
   }),
 });
 
@@ -76,7 +119,8 @@ export const scheduleDailyMotivation = async () => {
     content: {
       title: "Good morning! 🌅",
       body: randomQuote,
-      data: { type: 'daily_motivation' },
+      data: { type: 'daily_motivation', screen: 'Feed' },
+      ...(Platform.OS === 'android' ? { channelId: CHANNEL_GENERAL } : {}),
     },
     trigger: {
       type: Notifications.SchedulableTriggerInputTypes.DAILY,
@@ -106,7 +150,8 @@ export const scheduleTaskReminder = async (task) => {
     content: {
       title: '⏰ Task Reminder',
       body: task.title,
-      data: { type: 'task_reminder', taskId: task._id },
+      data: { type: 'task_reminder', taskId: task._id, screen: 'PendingTasks' },
+      ...(Platform.OS === 'android' ? { channelId: CHANNEL_TASKS } : {}),
     },
     trigger: {
       type: Notifications.SchedulableTriggerInputTypes.DAILY,
@@ -136,4 +181,26 @@ export const cancelTaskReminder = async (taskId) => {
     delete reminders[taskId];
     await saveStoredReminders(reminders);
   }
+};
+
+/**
+ * Show an immediate local notification for a new message.
+ * `friend` must have { _id, name, username, avatar }.
+ * Tapping the notification opens the Chat screen directly.
+ */
+export const showMessageNotification = async (friend, messageBody) => {
+  if (Platform.OS === 'web') return;
+  await Notifications.scheduleNotificationAsync({
+    content: {
+      title: `💬 ${friend.name || friend.username}`,
+      body: messageBody,
+      data: {
+        type: 'new_message',
+        screen: 'Chat',
+        params: { friend },
+      },
+      ...(Platform.OS === 'android' ? { channelId: CHANNEL_MESSAGES } : {}),
+    },
+    trigger: null, // immediate
+  });
 };
