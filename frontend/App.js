@@ -7,9 +7,12 @@ import QueryProvider from './src/services/QueryProvider';
 import useAuthStore from './src/store/authStore';
 import api from './src/services/api';
 import { ToastProvider } from './src/context/ToastContext';
-import { requestNotificationPermission, scheduleDailyMotivation, setupNotificationChannels } from './src/services/notifications';
+import { SafeAreaProvider } from 'react-native-safe-area-context';
+import { requestNotificationPermission, scheduleDailyMotivation, setupNotificationChannels, registerSmartReminders } from './src/services/notifications';
 import { useBadgeCount } from './src/hooks/useBadgeCount';
 import { navigationRef, registerDeepLinkHandler, unregisterDeepLinkHandler } from './src/services/DeepLinkHandler';
+import OfflineBanner from './src/components/OfflineBanner';
+import { useSyncQueue } from './src/hooks/useSyncQueue';
 
 import LoginScreen from './src/screens/LoginScreen';
 import RegisterScreen from './src/screens/RegisterScreen';
@@ -66,6 +69,12 @@ function BadgeSync() {
   return null;
 }
 
+// Replays offline mutations when device reconnects.
+function SyncQueue() {
+  useSyncQueue();
+  return null;
+}
+
 export default function App() {
   const { isAuthenticated, token, setAuth, clearAuth, _hydrated } = useAuthStore();
   const [validating, setValidating] = useState(true);
@@ -92,7 +101,10 @@ export default function App() {
         // Set up Android channels first, then request permission & schedule
         setupNotificationChannels().then(() =>
           requestNotificationPermission().then((granted) => {
-            if (granted) scheduleDailyMotivation();
+            if (granted) {
+              scheduleDailyMotivation();
+              registerSmartReminders();
+            }
           })
         );
       })
@@ -113,15 +125,19 @@ export default function App() {
   }
 
   return (
+    <SafeAreaProvider>
     <QueryProvider>
       <ToastProvider>
         <NavigationContainer ref={navigationRef}>
           <StatusBar style="light" />
           <BadgeSync />
+          <SyncQueue />
           {isAuthenticated ? <AppStack /> : <AuthStack />}
         </NavigationContainer>
       </ToastProvider>
     </QueryProvider>
+    <OfflineBanner />
+    </SafeAreaProvider>
   );
 }
 

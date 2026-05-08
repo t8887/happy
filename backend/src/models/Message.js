@@ -26,8 +26,8 @@ const messageSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
-// Fast conversation lookup: get all messages between two users
-messageSchema.index({ sender: 1, receiver: 1 });
-messageSchema.index({ createdAt: 1 });
+// Compound: covers both conversation-lookup AND time-sorted queries in one index.
+// Any query filtering sender+receiver can additionally sort by createdAt for free.
+messageSchema.index({ sender: 1, receiver: 1, createdAt: -1 });
 
 module.exports = mongoose.model('Message', messageSchema);

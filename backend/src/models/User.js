@@ -51,6 +51,10 @@ const userSchema = new mongoose.Schema(
       type: Number,
       default: 0,
     },
+    longestStreak: {
+      type: Number,
+      default: 0,
+    },
     lastActiveDate: {
       type: Date,
       default: null,
@@ -58,6 +62,10 @@ const userSchema = new mongoose.Schema(
   },
   { timestamps: true }
 );
+
+// Fast user search by username and display name
+userSchema.index({ username: 'text', name: 'text' });
+// email already has a unique index from the schema definition above
 
 // Hash password before saving
 userSchema.pre('save', async function (next) {

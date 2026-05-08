@@ -3,9 +3,9 @@ const { sendSuccess } = require('../utils/response');
 
 // GET /api/streak
 const getStreak = async (req, res) => {
-  const user = await User.findById(req.user._id).select('streak lastActiveDate xp');
+  const user = await User.findById(req.user._id).select('streak longestStreak lastActiveDate xp');
   sendSuccess(res, {
-    streak: { current: user.streak, lastActiveDate: user.lastActiveDate, xp: user.xp },
+    streak: { current: user.streak, longest: user.longestStreak, lastActiveDate: user.lastActiveDate, xp: user.xp },
   });
 };
 
@@ -27,7 +27,7 @@ const updateStreak = async (req, res) => {
 
   await User.findByIdAndUpdate(req.user._id, { streak: newStreak });
 
-  sendSuccess(res, { streak: { current: newStreak, lastActiveDate: user.lastActiveDate } });
+  sendSuccess(res, { streak: { current: newStreak, longest: user.longestStreak, lastActiveDate: user.lastActiveDate } });
 };
 
 module.exports = { getStreak, updateStreak };

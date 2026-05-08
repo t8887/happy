@@ -37,6 +37,7 @@ const awardXP = async (userId) => {
   await User.findByIdAndUpdate(userId, {
     $inc: { xp: XP_PER_TASK },
     streak: newStreak,
+    longestStreak: newStreak > (user.longestStreak ?? 0) ? newStreak : user.longestStreak,
     lastActiveDate: today,
   });
 

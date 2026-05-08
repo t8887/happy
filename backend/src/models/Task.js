@@ -51,6 +51,11 @@ const taskSchema = new mongoose.Schema(
       type: Date,
       default: null,
     },
+    deletedAt: {
+      // Set when status is changed to 'deleted' (soft delete)
+      type: Date,
+      default: null,
+    },
     xpAwarded: {
       type: Number,
       default: 0,
@@ -64,3 +69,13 @@ const taskSchema = new mongoose.Schema(
 );
 
 module.exports = mongoose.model('Task', taskSchema);
+
+// ─── Indexes ──────────────────────────────────────────────────────────────────
+// Compound: most queries filter by user + status (pending/completed)
+taskSchema.index({ user: 1, status: 1 });
+// Compound: completed task history, sorted by newest first
+taskSchema.index({ user: 1, completedAt: -1 });
+// Single: reset service queries by scheduledTime across all users
+taskSchema.index({ scheduledTime: 1 });
+// Single: reset service filters repeating tasks
+taskSchema.index({ repeatType: 1 });

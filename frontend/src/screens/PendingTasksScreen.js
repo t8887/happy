@@ -1,13 +1,15 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import {
   View, Text, StyleSheet, FlatList, TouchableOpacity,
-  TextInput, ActivityIndicator, Alert, Image,
+  TextInput, ActivityIndicator, Alert, Image, Animated,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import * as ImagePicker from 'expo-image-picker';
 import { useTasks, useUpdateTask, useCompleteTask, useDeleteTask } from '../hooks/useTasks';
 import { useToast } from '../context/ToastContext';
+import { getAssetForType } from '../constants/motivationAssets';
 
-const TYPES = ['task', 'habit', 'goal'];
+const TYPES = ['task', 'habit', 'workout', 'reading', 'meditation', 'other'];
 const REPEATS = ['none', 'daily', 'weekly'];
 
 function EditForm({ task, onSave, onCancel, saving }) {
@@ -102,6 +104,32 @@ function EditForm({ task, onSave, onCancel, saving }) {
   );
 }
 
+// Animated empty state
+function AnimatedEmptyState() {
+  const scale   = useRef(new Animated.Value(1)).current;
+  const opacity = useRef(new Animated.Value(0)).current;
+
+  useEffect(() => {
+    Animated.timing(opacity, { toValue: 1, duration: 500, useNativeDriver: true }).start();
+    Animated.loop(
+      Animated.sequence([
+        Animated.timing(scale, { toValue: 1.12, duration: 1600, useNativeDriver: true }),
+        Animated.timing(scale, { toValue: 1,    duration: 1600, useNativeDriver: true }),
+      ])
+    ).start();
+  }, []);
+
+  return (
+    <Animated.View style={[styles.emptyWrap, { opacity }]}>
+      <View style={styles.emptyRing}>
+        <Animated.Text style={{ fontSize: 44, transform: [{ scale }] }}>✨</Animated.Text>
+      </View>
+      <Text style={styles.emptyText}>All clear!</Text>
+      <Text style={styles.emptySub}>{'You have no pending tasks.\nAdd one to get started.'}</Text>
+    </Animated.View>
+  );
+}
+
 export default function PendingTasksScreen() {
   const { data: tasks, isLoading } = useTasks();
   const { mutateAsync: updateTask } = useUpdateTask();
@@ -146,107 +174,193 @@ export default function PendingTasksScreen() {
   }
 
   return (
-    <View style={styles.container}>
+    <SafeAreaView style={styles.container} edges={['bottom']}>
       {(!tasks || tasks.length === 0) ? (
-        <View style={styles.emptyWrap}>
-          <Text style={styles.emptyEmoji}>✨</Text>
-          <Text style={styles.emptyText}>All clear!</Text>
-          <Text style={styles.emptySub}>You have no pending tasks. Add one to get started.</Text>
-        </View>
+        <AnimatedEmptyState />
       ) : (
         <FlatList
           data={tasks}
           keyExtractor={(item) => item._id}
           contentContainerStyle={{ padding: 16, paddingBottom: 32 }}
-          renderItem={({ item }) => (
-            <View style={styles.card}>
-              {editingId === item._id ? (
-                <EditForm
-                  task={item}
-                  saving={savingId === item._id}
-                  onSave={(updates) => handleSave(item._id, updates)}
-                  onCancel={() => setEditingId(null)}
-                />
-              ) : (
-                <>
-                  <View style={styles.taskHeader}>
-                    <View style={styles.badges}>
-                      <View style={styles.typeBadge}>
-                        <Text style={styles.typeBadgeText}>{item.type}</Text>
-                      </View>
-                      {item.repeatType && item.repeatType !== 'none' && (
-                        <View style={styles.repeatBadge}>
-                          <Text style={styles.repeatBadgeText}>🔁 {item.repeatType}</Text>
-                        </View>
-                      )}
-                    </View>
-                  </View>
-                  <Text style={styles.taskTitle}>{item.title}</Text>
-                  {!!item.image && (
-                    <Image source={{ uri: item.image }} style={styles.taskImage} />
-                  )}
-                  <View style={styles.actionRow}>
-                    <TouchableOpacity style={styles.completeBtn} onPress={() => completeTask(item._id)}>
-                      <Text style={styles.completeBtnText}>✓ Complete</Text>
-                    </TouchableOpacity>
-                    <TouchableOpacity style={styles.editBtn} onPress={() => setEditingId(item._id)}>
-                      <Text style={styles.editBtnText}>✏️ Edit</Text>
-                    </TouchableOpacity>
-                    <TouchableOpacity style={styles.deleteBtn} onPress={() => handleDelete(item._id)}>
-                      <Text style={styles.deleteBtnText}>🗑</Text>
-                    </TouchableOpacity>
-                  </View>
-                </>
-              )}
-            </View>
+          renderItem={({ item, index }) => (
+            <TaskCard
+              item={item}
+              index={index}
+              asset={getAssetForType(item.type)}
+              isEditing={editingId === item._id}
+              saving={savingId === item._id}
+              onComplete={() => completeTask(item._id)}
+              onEdit={() => setEditingId(item._id)}
+              onDelete={() => handleDelete(item._id)}
+              onSave={(updates) => handleSave(item._id, updates)}
+              onCancelEdit={() => setEditingId(null)}
+            />
           )}
         />
       )}
-    </View>
+    </SafeAreaView>
+  );
+}
+
+function TaskCard({ item, index, asset, isEditing, saving, onComplete, onEdit, onDelete, onSave, onCancelEdit }) {
+  const opacity    = useRef(new Animated.Value(0)).current;
+  const translateY = useRef(new Animated.Value(16)).current;
+  const scale      = useRef(new Animated.Value(1)).current;
+  const { image: AnimalSvg, accent } = asset;
+
+  // Staggered entry — each card waits index × 60ms before fading in
+  useEffect(() => {
+    const delay = (index || 0) * 60;
+    Animated.parallel([
+      Animated.timing(opacity,    { toValue: 1, duration: 300, delay, useNativeDriver: true }),
+      Animated.timing(translateY, { toValue: 0, duration: 300, delay, useNativeDriver: true }),
+    ]).start();
+  }, []);
+
+  // Play shrink+fade exit animation, then fire the actual mutation
+  const handleComplete = () => {
+    Animated.parallel([
+      Animated.timing(scale,   { toValue: 0.92, duration: 180, useNativeDriver: true }),
+      Animated.timing(opacity, { toValue: 0,    duration: 220, useNativeDriver: true }),
+    ]).start(() => onComplete());
+  };
+
+  return (
+    <Animated.View style={[styles.card, { borderColor: accent + '30', opacity, transform: [{ translateY }, { scale }] }]}>
+      {/* Left accent bar */}
+      <View style={[styles.accentBar, { backgroundColor: accent }]} />
+
+      <View style={styles.cardInner}>
+        {isEditing ? (
+          <EditForm task={item} saving={saving} onSave={onSave} onCancel={onCancelEdit} />
+        ) : (
+          <>
+            {/* Top section: text left, SVG thumbnail right */}
+            <View style={styles.topRow}>
+              <View style={styles.topLeft}>
+                {/* Badges */}
+                <View style={styles.badges}>
+                  <View style={[styles.typeBadge, { backgroundColor: accent + '18', borderColor: accent + '40' }]}>
+                    <Text style={[styles.typeBadgeText, { color: accent }]}>
+                      {(item.type || 'task').toUpperCase()}
+                    </Text>
+                  </View>
+                  {item.repeatType && item.repeatType !== 'none' && (
+                    <View style={styles.repeatBadge}>
+                      <Text style={styles.repeatBadgeText}>🔁 {item.repeatType}</Text>
+                    </View>
+                  )}
+                  {!!item.scheduledTime && (
+                    <View style={styles.timeBadge}>
+                      <Text style={styles.timeBadgeText}>🕐 {item.scheduledTime}</Text>
+                    </View>
+                  )}
+                </View>
+                {/* Title */}
+                <Text style={styles.taskTitle} numberOfLines={3}>{item.title}</Text>
+              </View>
+
+              {/* Animal SVG thumbnail */}
+              <View style={[styles.thumbnailBox, { backgroundColor: accent + '12', borderColor: accent + '25' }]}>
+                <AnimalSvg width={60} height={60} />
+              </View>
+            </View>
+
+            {/* Task photo (if user attached one) */}
+            {!!item.image && (
+              <Image source={{ uri: item.image }} style={styles.taskImage} />
+            )}
+
+            {/* Action row */}
+            <View style={styles.actionRow}>
+              <TouchableOpacity
+                style={[styles.completeBtn, { backgroundColor: accent + '18', borderColor: accent + '44' }]}
+                onPress={handleComplete}
+              >
+                <Text style={[styles.completeBtnText, { color: accent }]}>✓  Complete</Text>
+              </TouchableOpacity>
+              <TouchableOpacity style={styles.editBtn} onPress={onEdit}>
+                <Text style={styles.editBtnText}>✏️</Text>
+              </TouchableOpacity>
+              <TouchableOpacity style={styles.deleteBtn} onPress={onDelete}>
+                <Text style={styles.deleteBtnText}>🗑</Text>
+              </TouchableOpacity>
+            </View>
+          </>
+        )}
+      </View>
+    </Animated.View>
   );
 }
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#0f0f1a' },
   centered: { flex: 1, backgroundColor: '#0f0f1a', alignItems: 'center', justifyContent: 'center' },
-  emptyWrap: { flex: 1, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 32 },
-  emptyEmoji: { fontSize: 48, marginBottom: 12 },
+  emptyWrap: { flex: 1, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 40, paddingTop: 80 },
+  emptyRing: {
+    width: 100, height: 100, borderRadius: 50,
+    backgroundColor: '#1a1a2e', borderWidth: 1, borderColor: '#6C63FF33',
+    alignItems: 'center', justifyContent: 'center', marginBottom: 20,
+  },
   emptyText: { color: '#fff', fontSize: 18, fontWeight: '700', marginBottom: 8 },
-  emptySub: { color: '#666', fontSize: 14, textAlign: 'center', lineHeight: 20 },
+  emptySub: { color: '#666', fontSize: 14, textAlign: 'center', lineHeight: 22 },
 
   card: {
-    backgroundColor: '#1a1a2e', borderRadius: 14,
-    padding: 14, marginBottom: 12,
+    backgroundColor: '#141420',
+    borderRadius: 18,
+    marginBottom: 12,
+    borderWidth: 1,
+    flexDirection: 'row',
+    overflow: 'hidden',
+    elevation: 4,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.25,
+    shadowRadius: 6,
   },
-  taskHeader: { flexDirection: 'row', marginBottom: 6 },
-  badges: { flexDirection: 'row', gap: 6 },
+  accentBar: { width: 4 },
+  cardInner: { flex: 1, padding: 14 },
+
+  // Top section: text left + SVG thumbnail right
+  topRow: { flexDirection: 'row', alignItems: 'flex-start', marginBottom: 12, gap: 12 },
+  topLeft: { flex: 1 },
+  thumbnailBox: {
+    width: 76, height: 76, borderRadius: 16, borderWidth: 1,
+    alignItems: 'center', justifyContent: 'center',
+    flexShrink: 0,
+  },
+
+  badges: { flexDirection: 'row', gap: 6, flexWrap: 'wrap', marginBottom: 8 },
   typeBadge: {
-    backgroundColor: '#6C63FF22', borderRadius: 8,
+    borderRadius: 8, borderWidth: 1,
     paddingHorizontal: 8, paddingVertical: 3,
   },
-  typeBadgeText: { color: '#6C63FF', fontSize: 11, fontWeight: '600', textTransform: 'uppercase' },
+  typeBadgeText: { fontSize: 10, fontWeight: '700', letterSpacing: 0.8 },
   repeatBadge: {
-    backgroundColor: '#ffffff11', borderRadius: 8,
+    backgroundColor: '#ffffff0d', borderRadius: 8,
     paddingHorizontal: 8, paddingVertical: 3,
   },
-  repeatBadgeText: { color: '#aaa', fontSize: 11 },
-  taskTitle: { color: '#fff', fontSize: 16, fontWeight: '600', marginBottom: 12 },
+  repeatBadgeText: { color: '#888', fontSize: 10 },
+  timeBadge: {
+    backgroundColor: '#ffffff0d', borderRadius: 8,
+    paddingHorizontal: 8, paddingVertical: 3,
+  },
+  timeBadgeText: { color: '#888', fontSize: 10 },
+  taskTitle: { color: '#fff', fontSize: 16, fontWeight: '600', marginBottom: 12, lineHeight: 22 },
   actionRow: { flexDirection: 'row', gap: 8, alignItems: 'center' },
   completeBtn: {
-    flex: 1, backgroundColor: '#1a3a1a', borderRadius: 10,
-    paddingVertical: 8, alignItems: 'center',
-    borderWidth: 1, borderColor: '#2a5a2a',
+    flex: 1, borderRadius: 10, borderWidth: 1,
+    paddingVertical: 9, alignItems: 'center',
   },
-  completeBtnText: { color: '#4caf50', fontWeight: '700', fontSize: 13 },
+  completeBtnText: { fontWeight: '700', fontSize: 13 },
   editBtn: {
-    flex: 1, backgroundColor: '#1a1a3e', borderRadius: 10,
-    paddingVertical: 8, alignItems: 'center',
-    borderWidth: 1, borderColor: '#6C63FF44',
+    backgroundColor: '#ffffff0d', borderRadius: 10,
+    paddingVertical: 9, paddingHorizontal: 14,
   },
-  editBtnText: { color: '#6C63FF', fontWeight: '700', fontSize: 13 },
+  editBtnText: { fontSize: 16 },
   deleteBtn: {
     backgroundColor: '#2a1a1a', borderRadius: 10,
-    paddingVertical: 8, paddingHorizontal: 14,
+    paddingVertical: 9, paddingHorizontal: 14,
     borderWidth: 1, borderColor: '#5a2a2a',
   },
   deleteBtnText: { fontSize: 16 },

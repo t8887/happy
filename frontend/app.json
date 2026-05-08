@@ -19,7 +19,7 @@
       "package": "com.t8887.lifefeed",
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
-        "backgroundColor": "#ffffff"
+        "backgroundColor": "#0f0f1a"
       },
       "edgeToEdgeEnabled": true
     },

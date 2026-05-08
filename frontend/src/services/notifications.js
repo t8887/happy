@@ -183,6 +183,105 @@ export const cancelTaskReminder = async (taskId) => {
   }
 };
 
+// ─── Smart reminder message pools ────────────────────────────────────────────
+const STREAK_PROTECTION_MSGS = [
+  "Don't break your streak! 🔥 One quick task before midnight.",
+  "Your streak is at risk! 🔥 Tap to keep the fire alive.",
+  "No activity yet today. Protect your streak now 🔥",
+  "Streak check-in ⚠️ Complete a task before the day ends!",
+];
+
+const END_OF_DAY_MSGS = [
+  "Day wrap-up 🌙 How did today go? Check your progress.",
+  "Night check-in 📊 See what you've accomplished today.",
+  "Before you sleep — did you keep the streak alive? 🌙",
+  "End of day 📋 Your Feed is waiting for a recap.",
+];
+
+const MIDDAY_MSGS = [
+  "Halfway through the day! Keep the momentum going 💪",
+  "Midday check-in ✅ Any tasks you can knock out right now?",
+  "Quick win time 🎯 Tackle one task while you're at it!",
+  "You're doing great — keep building those habits ⚡",
+  "Midday boost 🚀 One task = one step closer to your goal.",
+];
+
+/**
+ * Cancel all previously scheduled notifications matching a given type,
+ * then schedule a new daily one.
+ */
+const rescheduleDaily = async ({ type, title, body, hour, minute }) => {
+  const scheduled = await Notifications.getAllScheduledNotificationsAsync();
+  await Promise.all(
+    scheduled
+      .filter((n) => n.content?.data?.type === type)
+      .map((n) => Notifications.cancelScheduledNotificationAsync(n.identifier))
+  );
+
+  await Notifications.scheduleNotificationAsync({
+    content: {
+      title,
+      body,
+      data: { type, screen: 'Feed' },
+      ...(Platform.OS === 'android' ? { channelId: CHANNEL_GENERAL } : {}),
+    },
+    trigger: {
+      type: Notifications.SchedulableTriggerInputTypes.DAILY,
+      hour,
+      minute,
+    },
+  });
+};
+
+/**
+ * Schedule a daily 7 PM "streak at risk" reminder.
+ * Designed to fire only when the user might not have completed anything yet.
+ * (The app cannot know at schedule time — the reminder is unconditional.)
+ */
+export const scheduleStreakProtection = () =>
+  rescheduleDaily({
+    type: 'streak_protection',
+    title: '🔥 Streak Alert',
+    body: STREAK_PROTECTION_MSGS[Math.floor(Math.random() * STREAK_PROTECTION_MSGS.length)],
+    hour: 19,
+    minute: 0,
+  });
+
+/**
+ * Schedule a daily 9 PM end-of-day summary nudge.
+ */
+export const scheduleEndOfDaySummary = () =>
+  rescheduleDaily({
+    type: 'end_of_day',
+    title: '🌙 Day Summary',
+    body: END_OF_DAY_MSGS[Math.floor(Math.random() * END_OF_DAY_MSGS.length)],
+    hour: 21,
+    minute: 0,
+  });
+
+/**
+ * Schedule a daily midday motivation at a random minute between 12:00 – 13:59
+ * so it doesn't feel robotic.
+ */
+export const scheduleMidDayBoost = () =>
+  rescheduleDaily({
+    type: 'midday_boost',
+    title: '⚡ Midday Boost',
+    body: MIDDAY_MSGS[Math.floor(Math.random() * MIDDAY_MSGS.length)],
+    hour: 12 + Math.floor(Math.random() * 2),       // 12 or 13
+    minute: Math.floor(Math.random() * 60),
+  });
+
+/**
+ * Register (or refresh) all three smart reminders at once.
+ * Call this on every app launch after permissions are granted.
+ * Each function cancels its previous instance before rescheduling.
+ */
+export const registerSmartReminders = () =>
+  Platform.OS !== 'web'
+    ? Promise.all([scheduleStreakProtection(), scheduleEndOfDaySummary(), scheduleMidDayBoost()])
+    : Promise.resolve();
+
 /**
  * Show an immediate local notification for a new message.
  * `friend` must have { _id, name, username, avatar }.

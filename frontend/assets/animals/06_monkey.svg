@@ -1,0 +1,47 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 400" width="400" height="400">
+  <defs>
+    <radialGradient id="bg6" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#FFF8E1"/>
+      <stop offset="100%" stop-color="#FFECB3"/>
+    </radialGradient>
+  </defs>
+  <rect width="400" height="400" rx="40" fill="url(#bg6)"/>
+  <!-- Ears -->
+  <circle cx="142" cy="188" r="28" fill="#795548"/>
+  <circle cx="258" cy="188" r="28" fill="#795548"/>
+  <circle cx="142" cy="188" r="18" fill="#FFCC80"/>
+  <circle cx="258" cy="188" r="18" fill="#FFCC80"/>
+  <!-- Body -->
+  <ellipse cx="200" cy="295" rx="75" ry="62" fill="#795548"/>
+  <!-- Belly -->
+  <ellipse cx="200" cy="305" rx="48" ry="42" fill="#FFCC80"/>
+  <!-- Head -->
+  <circle cx="200" cy="192" r="70" fill="#795548"/>
+  <!-- Face patch -->
+  <ellipse cx="200" cy="210" rx="48" ry="40" fill="#FFCC80"/>
+  <!-- Eyes -->
+  <circle cx="178" cy="183" r="13" fill="white"/>
+  <circle cx="222" cy="183" r="13" fill="white"/>
+  <circle cx="181" cy="184" r="8" fill="#212121"/>
+  <circle cx="225" cy="184" r="8" fill="#212121"/>
+  <circle cx="183" cy="182" r="3" fill="white"/>
+  <circle cx="227" cy="182" r="3" fill="white"/>
+  <!-- Nostrils -->
+  <circle cx="193" cy="208" r="4" fill="#5D4037"/>
+  <circle cx="207" cy="208" r="4" fill="#5D4037"/>
+  <!-- Big smile -->
+  <path d="M180 220 Q200 238 220 220" stroke="#5D4037" stroke-width="3" fill="none" stroke-linecap="round"/>
+  <!-- Cheeks -->
+  <circle cx="158" cy="210" r="12" fill="#FF8A65" opacity="0.5"/>
+  <circle cx="242" cy="210" r="12" fill="#FF8A65" opacity="0.5"/>
+  <!-- Arms with banana -->
+  <ellipse cx="125" cy="290" rx="18" ry="50" fill="#795548" transform="rotate(15 125 290)"/>
+  <ellipse cx="275" cy="290" rx="18" ry="50" fill="#795548" transform="rotate(-15 275 290)"/>
+  <!-- Banana -->
+  <path d="M95 270 Q85 255 100 245 Q115 240 118 255 Q110 268 95 270" fill="#FFD600" stroke="#F9A825" stroke-width="2"/>
+  <!-- Legs -->
+  <rect x="150" y="338" width="32" height="38" rx="12" fill="#795548"/>
+  <rect x="218" y="338" width="32" height="38" rx="12" fill="#795548"/>
+  <!-- Quote -->
+  <text x="200" y="393" font-family="Georgia, serif" font-size="13" font-style="italic" text-anchor="middle" fill="#4E342E" font-weight="bold">"Stay Curious, Climb Higher!"</text>
+</svg>

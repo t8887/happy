@@ -3,6 +3,7 @@ import {
   View, Text, StyleSheet, FlatList,
   TouchableOpacity, Image, ActivityIndicator,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import * as Notifications from 'expo-notifications';
 import { Platform } from 'react-native';
 import { useConversationList } from '../hooks/useMessages';
@@ -53,7 +54,7 @@ export default function ChatListScreen({ navigation }) {
   }
 
   return (
-    <View style={styles.container}>
+    <SafeAreaView style={styles.container} edges={['bottom']}>
       {(!conversations || conversations.length === 0) ? (
         <View style={styles.emptyWrap}>
           <Text style={styles.emptyEmoji}>💬</Text>
@@ -92,7 +93,7 @@ export default function ChatListScreen({ navigation }) {
           )}
         />
       )}
-    </View>
+    </SafeAreaView>
   );
 }
 

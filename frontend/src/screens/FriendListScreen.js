@@ -3,6 +3,7 @@ import {
   View, Text, StyleSheet, FlatList,
   TouchableOpacity, Image, ActivityIndicator,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { useFriendList } from '../hooks/useFriends';
 
 function UserAvatar({ user, size = 44 }) {
@@ -34,7 +35,7 @@ export default function FriendListScreen({ navigation }) {
   }
 
   return (
-    <View style={styles.container}>
+    <SafeAreaView style={styles.container} edges={['bottom']}>
       {(!friends || friends.length === 0) ? (
         <View style={styles.emptyWrap}>
           <Text style={styles.emptyEmoji}>👥</Text>
@@ -63,7 +64,7 @@ export default function FriendListScreen({ navigation }) {
           )}
         />
       )}
-    </View>
+    </SafeAreaView>
   );
 }
 

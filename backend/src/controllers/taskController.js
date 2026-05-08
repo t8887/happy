@@ -100,7 +100,7 @@ const updateTask = async (req, res) => {
 const deleteTask = async (req, res) => {
   const task = await Task.findOneAndUpdate(
     { _id: req.params.id, user: req.user._id, status: { $ne: 'deleted' } },
-    { $set: { status: 'deleted' } },
+    { $set: { status: 'deleted', deletedAt: new Date() } },
     { new: true }
   );
 

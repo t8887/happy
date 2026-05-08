@@ -4,6 +4,7 @@ import {
   TouchableOpacity, KeyboardAvoidingView, Platform,
   ActivityIndicator,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { useConversation, useSendMessage } from '../hooks/useMessages';
 import useAuthStore from '../store/authStore';
 
@@ -50,6 +51,7 @@ export default function ChatScreen({ route, navigation }) {
   const myId = me?._id || me?.id;
 
   return (
+    <SafeAreaView style={{ flex: 1, backgroundColor: '#0f0f1a' }} edges={['bottom']}>
     <KeyboardAvoidingView
       style={styles.container}
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
@@ -105,6 +107,7 @@ export default function ChatScreen({ route, navigation }) {
         </TouchableOpacity>
       </View>
     </KeyboardAvoidingView>
+    </SafeAreaView>
   );
 }
 

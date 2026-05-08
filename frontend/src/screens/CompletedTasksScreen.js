@@ -3,6 +3,7 @@ import {
   View, Text, FlatList, StyleSheet,
   TouchableOpacity, ActivityIndicator, Alert,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { useCompletedTasks, useDeleteTask } from '../hooks/useTasks';
 import { useToast } from '../context/ToastContext';
 
@@ -64,7 +65,7 @@ export default function CompletedTasksScreen({ navigation }) {
   );
 
   return (
-    <View style={styles.container}>
+    <SafeAreaView style={styles.container} edges={['top', 'bottom']}>
       {/* Header */}
       <View style={styles.header}>
         <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backBtn}>
@@ -92,7 +93,7 @@ export default function CompletedTasksScreen({ navigation }) {
           }
         />
       )}
-    </View>
+    </SafeAreaView>
   );
 }
 
@@ -102,7 +103,7 @@ const styles = StyleSheet.create({
   header: {
     flexDirection: 'row', alignItems: 'center',
     justifyContent: 'space-between',
-    paddingHorizontal: 20, paddingTop: 56, paddingBottom: 16,
+    paddingHorizontal: 20, paddingTop: 16, paddingBottom: 16,
     borderBottomWidth: 1, borderBottomColor: '#1A1A2E',
   },
   backBtn: { padding: 4 },

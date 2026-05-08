@@ -4,6 +4,7 @@ import {
   StyleSheet, ActivityIndicator, Image,
   ScrollView, KeyboardAvoidingView, Platform, Animated, Modal, Alert,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import * as ImagePicker from 'expo-image-picker';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { useCreateTask, useTasks, useCompleteTask, useDeleteTask } from '../hooks/useTasks';
@@ -108,6 +109,7 @@ export default function AddTaskScreen({ navigation }) {
   };
 
   return (
+    <SafeAreaView style={{ flex: 1, backgroundColor: '#0f0f1a' }} edges={['top', 'bottom']}>
     <KeyboardAvoidingView style={styles.container} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
       <View style={styles.header}>
         <TouchableOpacity onPress={() => navigation.goBack()}>
@@ -276,10 +278,11 @@ export default function AddTaskScreen({ navigation }) {
             pendingTasks.map((task) => {
               const scale = new Animated.Value(1);
               return (
-              <View key={task._id} style={styles.taskRow}>
+              <View key={task._id} style={[styles.taskRow, task._optimistic && { opacity: 0.55 }]}>
                 <View style={styles.taskTitleRow}>
                   <Text style={styles.taskTitle} numberOfLines={1}>{task.title}</Text>
-                  {task.repeatType && task.repeatType !== 'none' && (
+                  {task._optimistic && <Text style={styles.repeatBadge}>⏳</Text>}
+                  {!task._optimistic && task.repeatType && task.repeatType !== 'none' && (
                     <Text style={styles.repeatBadge}>🔁</Text>
                   )}
                 </View>
@@ -313,6 +316,7 @@ export default function AddTaskScreen({ navigation }) {
         </View>
       </ScrollView>
     </KeyboardAvoidingView>
+    </SafeAreaView>
   );
 }
 
@@ -320,7 +324,7 @@ const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#0f0f1a' },
   header: {
     flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
-    paddingHorizontal: 20, paddingTop: 60, paddingBottom: 20,
+    paddingHorizontal: 20, paddingTop: 20, paddingBottom: 20,
   },
   back: { color: '#aaa', fontSize: 16 },
   heading: { color: '#fff', fontSize: 20, fontWeight: '700' },

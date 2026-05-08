@@ -3,6 +3,7 @@ import {
   View, Text, TextInput, TouchableOpacity,
   StyleSheet, ActivityIndicator, KeyboardAvoidingView, Platform,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { useLogin } from '../hooks/useAuth';
 import { useToast } from '../context/ToastContext';
 
@@ -30,6 +31,7 @@ export default function LoginScreen({ navigation, route }) {
   };
 
   return (
+    <SafeAreaView style={{ flex: 1, backgroundColor: '#0f0f0f' }} edges={['top', 'bottom']}>
     <KeyboardAvoidingView style={styles.container} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
       <Text style={styles.logo}>LifeFeed</Text>
       <Text style={styles.tagline}>Track your life. Earn your streak.</Text>
@@ -66,6 +68,7 @@ export default function LoginScreen({ navigation, route }) {
         </TouchableOpacity>
       </View>
     </KeyboardAvoidingView>
+    </SafeAreaView>
   );
 }
 

@@ -3,6 +3,7 @@ import {
   View, Text, StyleSheet, TouchableOpacity,
   TextInput, ActivityIndicator, ScrollView, KeyboardAvoidingView, Platform, Image, Alert,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import * as ImagePicker from 'expo-image-picker';
 import { useProfile, useUpdateProfile } from '../hooks/useProfile';
 import { useToast } from '../context/ToastContext';
@@ -93,65 +94,78 @@ export default function ProfileScreen({ navigation }) {
     .charAt(0)
     .toUpperCase();
 
+  const currentAvatar = editing ? avatar : profile?.avatar;
+
   return (
+    <SafeAreaView style={{ flex: 1, backgroundColor: '#0F0F1A' }} edges={['bottom']}>
     <KeyboardAvoidingView
-      style={{ flex: 1 }}
+      style={{ flex: 1, backgroundColor: '#0F0F1A' }}
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}
     >
       <ScrollView style={styles.container} contentContainerStyle={styles.content}>
-        {/* Header */}
-        <View style={styles.header}>
-          <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backBtn}>
-            <Text style={styles.backText}>← Back</Text>
-          </TouchableOpacity>
-          <Text style={styles.title}>Profile</Text>
-          <View style={{ width: 60 }} />
-        </View>
 
-        {/* Avatar */}
-        <View style={styles.avatarWrap}>
-          {(editing ? avatar : profile?.avatar) ? (
-            <Image
-              source={{ uri: editing ? avatar : profile.avatar }}
-              style={styles.avatarImage}
-            />
-          ) : (
-            <View style={styles.avatar}>
-              <Text style={styles.avatarText}>{initials}</Text>
-            </View>
-          )}
-          {editing ? (
+        {/* Hero */}
+        <View style={styles.hero}>
+          {/* Back button overlaid */}
+          <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backBtn}>
+            <Text style={styles.backText}>Back</Text>
+          </TouchableOpacity>
+
+          {/* Avatar ring + image */}
+          <TouchableOpacity
+            style={styles.avatarRing}
+            onPress={editing ? showPickerOptions : undefined}
+            activeOpacity={editing ? 0.7 : 1}
+          >
+            {currentAvatar ? (
+              <Image source={{ uri: currentAvatar }} style={styles.avatarImage} />
+            ) : (
+              <View style={styles.avatarFallback}>
+                <Text style={styles.avatarText}>{initials}</Text>
+              </View>
+            )}
+            {editing && (
+              <View style={styles.editOverlay}>
+                <Text style={styles.editOverlayText}>ðŸ“·</Text>
+              </View>
+            )}
+          </TouchableOpacity>
+
+          {/* Name + username */}
+          <Text style={styles.displayName}>{profile?.name || profile?.username}</Text>
+          <Text style={styles.username}>@{profile?.username}</Text>
+
+          {editing && (
             <TouchableOpacity style={styles.changePhotoBtn} onPress={showPickerOptions}>
               <Text style={styles.changePhotoText}>Change Photo</Text>
             </TouchableOpacity>
-          ) : (
-            <Text style={styles.username}>@{profile?.username}</Text>
           )}
         </View>
 
-        {/* Stats row */}
+        {/* Stats */}
         <View style={styles.statsRow}>
-          <View style={styles.statBox}>
-            <Text style={styles.statValue}>{profile?.xp ?? profile?.xp ?? 0}</Text>
+          <View style={styles.statCard}>
+            <Text style={styles.statValue}>{profile?.xp ?? 0}</Text>
             <Text style={styles.statLabel}>Total XP</Text>
           </View>
           <View style={styles.statDivider} />
-          <View style={styles.statBox}>
+          <View style={styles.statCard}>
             <Text style={styles.statValue}>{profile?.streak ?? 0}</Text>
-            <Text style={styles.statLabel}>Streak 🔥</Text>
+            <Text style={styles.statLabel}>Day Streak</Text>
           </View>
         </View>
 
-        {/* Edit form / Display */}
+        {/* Info */}
         {editing ? (
           <View style={styles.card}>
+            <Text style={styles.cardTitle}>Edit Profile</Text>
             <Text style={styles.fieldLabel}>Display Name</Text>
             <TextInput
               style={styles.input}
               value={name}
               onChangeText={setName}
               placeholder="Your name"
-              placeholderTextColor="#888"
+              placeholderTextColor="#555"
               maxLength={40}
             />
             <Text style={styles.fieldLabel}>Bio</Text>
@@ -160,7 +174,7 @@ export default function ProfileScreen({ navigation }) {
               value={bio}
               onChangeText={setBio}
               placeholder="Short bio (max 160 chars)"
-              placeholderTextColor="#888"
+              placeholderTextColor="#555"
               multiline
               maxLength={160}
             />
@@ -171,145 +185,253 @@ export default function ProfileScreen({ navigation }) {
               <TouchableOpacity style={styles.saveBtn} onPress={saveEdit} disabled={isPending}>
                 {isPending
                   ? <ActivityIndicator color="#fff" size="small" />
-                  : <Text style={styles.saveText}>Save</Text>
+                  : <Text style={styles.saveText}>Save Changes</Text>
                 }
               </TouchableOpacity>
             </View>
           </View>
         ) : (
           <View style={styles.card}>
-            <Text style={styles.fieldLabel}>Display Name</Text>
-            <Text style={styles.fieldValue}>{profile?.name || '—'}</Text>
-            <Text style={styles.fieldLabel}>Bio</Text>
-            <Text style={styles.fieldValue}>{profile?.bio || '—'}</Text>
+            <View style={styles.cardRow}>
+              <View style={{ flex: 1 }}>
+                <Text style={styles.fieldLabel}>Display Name</Text>
+                <Text style={styles.fieldValue}>{profile?.name || 'â€”'}</Text>
+                <Text style={[styles.fieldLabel, { marginTop: 14 }]}>Bio</Text>
+                <Text style={styles.fieldValue}>{profile?.bio || 'No bio yet'}</Text>
+              </View>
+            </View>
             <TouchableOpacity style={styles.editBtn} onPress={startEdit}>
               <Text style={styles.editBtnText}>Edit Profile</Text>
             </TouchableOpacity>
           </View>
         )}
 
-        {/* Social buttons */}
-        <View style={styles.socialRow}>
+        {/* Social */}
+        <View style={styles.socialGrid}>
           <TouchableOpacity style={styles.socialBtn} onPress={() => navigation.navigate('FriendList')}>
-            <Text style={styles.socialBtnText}>👥 Friends</Text>
+            <Text style={styles.socialBtnText}>Friends</Text>
           </TouchableOpacity>
           <TouchableOpacity style={styles.socialBtn} onPress={() => navigation.navigate('FriendRequests')}>
-            <Text style={styles.socialBtnText}>📬 Requests</Text>
+            <Text style={styles.socialBtnText}>Requests</Text>
           </TouchableOpacity>
           <TouchableOpacity style={styles.socialBtn} onPress={() => navigation.navigate('ChatList')}>
-            <Text style={styles.socialBtnText}>💬 Messages</Text>
+            <Text style={styles.socialBtnText}>Messages</Text>
           </TouchableOpacity>
           <TouchableOpacity style={styles.socialBtn} onPress={() => navigation.navigate('SearchUsers')}>
-            <Text style={styles.socialBtnText}>🔍 Find People</Text>
+            <Text style={styles.socialBtnText}>Find People</Text>
           </TouchableOpacity>
         </View>
 
-        {/* Sign out */}
+        {/* Actions */}
         <TouchableOpacity style={styles.signOutBtn} onPress={clearAuth}>
           <Text style={styles.signOutText}>Sign Out</Text>
         </TouchableOpacity>
 
-        {/* Dev tool */}
+        {/* Dev */}
         <TouchableOpacity
           style={styles.devBtn}
           onPress={() => navigation.navigate('NotificationTest')}
         >
-          <Text style={styles.devBtnText}>🔔 Test Notifications</Text>
+          <Text style={styles.devBtnText}>Test Notifications</Text>
         </TouchableOpacity>
+
       </ScrollView>
     </KeyboardAvoidingView>
+    </SafeAreaView>
   );
 }
 
+const ACCENT = '#6C63FF';
+
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#0F0F1A' },
-  content: { padding: 20, paddingBottom: 40 },
+  content: { paddingBottom: 48 },
   center: { flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: '#0F0F1A' },
 
-  header: {
-    flexDirection: 'row', alignItems: 'center',
-    justifyContent: 'space-between', marginBottom: 28,
+  hero: {
+    backgroundColor: '#13132b',
+    alignItems: 'center',
+    paddingTop: Platform.OS === 'ios' ? 60 : 48,
+    paddingBottom: 32,
+    borderBottomLeftRadius: 36,
+    borderBottomRightRadius: 36,
+    borderBottomWidth: 1,
+    borderColor: ACCENT + '30',
+    marginBottom: 24,
   },
-  backBtn: { padding: 4 },
-  backText: { color: '#6C63FF', fontSize: 15 },
-  title: { color: '#fff', fontSize: 18, fontWeight: '700' },
+  backBtn: {
+    position: 'absolute',
+    top: Platform.OS === 'ios' ? 56 : 44,
+    left: 20,
+    zIndex: 10,
+    padding: 4,
+  },
+  backText: { color: ACCENT, fontSize: 15, fontWeight: '600' },
 
-  avatarWrap: { alignItems: 'center', marginBottom: 24 },
-  avatar: {
-    width: 80, height: 80, borderRadius: 40,
-    backgroundColor: '#6C63FF', justifyContent: 'center', alignItems: 'center',
-    marginBottom: 10,
+  avatarRing: {
+    width: 116,
+    height: 116,
+    borderRadius: 58,
+    borderWidth: 3,
+    borderColor: ACCENT,
+    padding: 3,
+    marginBottom: 16,
+    shadowColor: ACCENT,
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0.6,
+    shadowRadius: 14,
+    elevation: 12,
   },
   avatarImage: {
-    width: 80, height: 80, borderRadius: 40,
-    marginBottom: 10,
+    width: '100%',
+    height: '100%',
+    borderRadius: 52,
   },
-  avatarText: { color: '#fff', fontSize: 32, fontWeight: '700' },
-  username: { color: '#aaa', fontSize: 14 },
+  avatarFallback: {
+    width: '100%',
+    height: '100%',
+    borderRadius: 52,
+    backgroundColor: ACCENT,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  avatarText: { color: '#fff', fontSize: 40, fontWeight: '800' },
+  editOverlay: {
+    position: 'absolute',
+    bottom: 0,
+    right: 0,
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    backgroundColor: '#1a1a2e',
+    borderWidth: 2,
+    borderColor: ACCENT,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  editOverlayText: { fontSize: 14 },
+
+  displayName: { color: '#fff', fontSize: 22, fontWeight: '800', letterSpacing: 0.2 },
+  username: { color: '#b0b0dd', fontSize: 14, marginTop: 4 },
+
   changePhotoBtn: {
-    marginTop: 8, paddingVertical: 6, paddingHorizontal: 16,
-    backgroundColor: '#1a1a2e', borderRadius: 20,
-    borderWidth: 1, borderColor: '#6C63FF',
+    marginTop: 14,
+    paddingVertical: 8,
+    paddingHorizontal: 20,
+    backgroundColor: ACCENT + '20',
+    borderRadius: 20,
+    borderWidth: 1,
+    borderColor: ACCENT + '60',
   },
-  changePhotoText: { color: '#6C63FF', fontSize: 13, fontWeight: '600' },
-  socialRow: { flexDirection: 'row', gap: 8, marginBottom: 16 },
-  socialBtn: {
-    flex: 1, backgroundColor: '#1a1a2e', borderRadius: 12,
-    paddingVertical: 12, alignItems: 'center',
-    borderWidth: 1, borderColor: '#2a2a3e',
-  },
-  socialBtnText: { color: '#ccc', fontSize: 12, fontWeight: '600' },
+  changePhotoText: { color: ACCENT, fontSize: 13, fontWeight: '600' },
 
   statsRow: {
-    flexDirection: 'row', backgroundColor: '#1A1A2E',
-    borderRadius: 16, padding: 20, marginBottom: 24,
-    alignItems: 'center', justifyContent: 'space-around',
+    flexDirection: 'row',
+    marginHorizontal: 20,
+    backgroundColor: '#13132b',
+    borderRadius: 20,
+    paddingVertical: 20,
+    marginBottom: 20,
+    borderWidth: 1,
+    borderColor: '#2a2a44',
   },
-  statBox: { alignItems: 'center', flex: 1 },
-  statValue: { color: '#fff', fontSize: 26, fontWeight: '800' },
-  statLabel: { color: '#888', fontSize: 12, marginTop: 4 },
-  statDivider: { width: 1, height: 36, backgroundColor: '#333' },
+  statCard: { flex: 1, alignItems: 'center' },
+  statEmoji: { fontSize: 22, marginBottom: 6 },
+  statValue: { color: '#fff', fontSize: 28, fontWeight: '900' },
+  statLabel: { color: '#aaa', fontSize: 12, marginTop: 4, letterSpacing: 0.5 },
+  statDivider: { width: 1, backgroundColor: '#2a2a44', marginVertical: 8 },
 
   card: {
-    backgroundColor: '#1A1A2E', borderRadius: 16,
-    padding: 20, marginBottom: 20,
+    backgroundColor: '#13132b',
+    borderRadius: 20,
+    padding: 20,
+    marginHorizontal: 20,
+    marginBottom: 20,
+    borderWidth: 1,
+    borderColor: '#2a2a44',
   },
-  fieldLabel: { color: '#888', fontSize: 12, marginBottom: 4, marginTop: 12 },
-  fieldValue: { color: '#fff', fontSize: 15 },
+  cardTitle: { color: '#fff', fontSize: 16, fontWeight: '700', marginBottom: 16 },
+  cardRow: { flexDirection: 'row', alignItems: 'flex-start' },
+  fieldLabel: { color: '#aaa', fontSize: 11, fontWeight: '700', letterSpacing: 1, textTransform: 'uppercase', marginBottom: 4 },
+  fieldValue: { color: '#f0f0f0', fontSize: 15, lineHeight: 22 },
 
   input: {
-    backgroundColor: '#0F0F1A', borderWidth: 1, borderColor: '#333',
-    borderRadius: 10, padding: 12, color: '#fff', fontSize: 15, marginBottom: 4,
+    backgroundColor: '#0c0c1a',
+    borderWidth: 1,
+    borderColor: '#2a2a44',
+    borderRadius: 12,
+    padding: 13,
+    color: '#fff',
+    fontSize: 15,
+    marginBottom: 4,
   },
-  bioInput: { height: 80, textAlignVertical: 'top' },
+  bioInput: { height: 90, textAlignVertical: 'top' },
 
-  editActions: { flexDirection: 'row', gap: 12, marginTop: 16 },
+  editActions: { flexDirection: 'row', gap: 12, marginTop: 18 },
   cancelBtn: {
-    flex: 1, padding: 12, borderRadius: 10,
-    borderWidth: 1, borderColor: '#444', alignItems: 'center',
+    flex: 1, paddingVertical: 13, borderRadius: 12,
+    borderWidth: 1, borderColor: '#333', alignItems: 'center',
   },
-  cancelText: { color: '#aaa', fontWeight: '600' },
+  cancelText: { color: '#bbb', fontWeight: '600' },
   saveBtn: {
-    flex: 1, padding: 12, borderRadius: 10,
-    backgroundColor: '#6C63FF', alignItems: 'center',
+    flex: 2, paddingVertical: 13, borderRadius: 12,
+    backgroundColor: ACCENT, alignItems: 'center',
+    shadowColor: ACCENT, shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.4, shadowRadius: 10, elevation: 8,
   },
-  saveText: { color: '#fff', fontWeight: '700' },
+  saveText: { color: '#fff', fontWeight: '700', fontSize: 15 },
 
   editBtn: {
-    marginTop: 16, padding: 12, borderRadius: 10,
-    borderWidth: 1, borderColor: '#6C63FF', alignItems: 'center',
+    marginTop: 18,
+    paddingVertical: 13,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: ACCENT,
+    alignItems: 'center',
+    backgroundColor: ACCENT + '12',
   },
-  editBtnText: { color: '#6C63FF', fontWeight: '600' },
+  editBtnText: { color: ACCENT, fontWeight: '700', fontSize: 14 },
+
+  socialGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    marginHorizontal: 20,
+    gap: 12,
+    marginBottom: 20,
+  },
+  socialBtn: {
+    width: '47%',
+    backgroundColor: '#13132b',
+    borderRadius: 16,
+    paddingVertical: 16,
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: '#2a2a44',
+    gap: 6,
+  },
+  socialIcon: { fontSize: 22 },
+  socialBtnText: { color: '#e8e8e8', fontSize: 13, fontWeight: '600' },
 
   signOutBtn: {
-    padding: 14, borderRadius: 12,
-    borderWidth: 1, borderColor: '#E53935', alignItems: 'center',
+    marginHorizontal: 20,
+    paddingVertical: 15,
+    borderRadius: 14,
+    backgroundColor: '#E5393520',
+    borderWidth: 1,
+    borderColor: '#E53935',
+    alignItems: 'center',
+    marginBottom: 12,
   },
-  signOutText: { color: '#E53935', fontWeight: '600' },
+  signOutText: { color: '#E53935', fontWeight: '700', fontSize: 15 },
 
   devBtn: {
-    marginTop: 12, padding: 14, borderRadius: 12,
-    borderWidth: 1, borderColor: '#2a2a3a', alignItems: 'center',
+    marginHorizontal: 20,
+    paddingVertical: 14,
+    borderRadius: 14,
+    borderWidth: 1,
+    borderColor: '#2a2a3a',
+    alignItems: 'center',
   },
-  devBtnText: { color: '#888', fontWeight: '600', fontSize: 13 },
+  devBtnText: { color: '#999', fontWeight: '600', fontSize: 13 },
 });
+

@@ -1,0 +1,47 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 400" width="400" height="400">
+  <defs>
+    <radialGradient id="bg4" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#FFFDE7"/>
+      <stop offset="100%" stop-color="#FFF9C4"/>
+    </radialGradient>
+  </defs>
+  <rect width="400" height="400" rx="40" fill="url(#bg4)"/>
+  <!-- Mane -->
+  <circle cx="200" cy="195" r="90" fill="#F57F17"/>
+  <circle cx="200" cy="195" r="82" fill="#FF8F00"/>
+  <!-- Body -->
+  <ellipse cx="200" cy="295" rx="72" ry="60" fill="#FFB300"/>
+  <!-- Head -->
+  <circle cx="200" cy="190" r="65" fill="#FFD54F"/>
+  <!-- Ears -->
+  <circle cx="152" cy="140" r="18" fill="#FFB300"/>
+  <circle cx="248" cy="140" r="18" fill="#FFB300"/>
+  <circle cx="152" cy="140" r="10" fill="#FF8F00"/>
+  <circle cx="248" cy="140" r="10" fill="#FF8F00"/>
+  <!-- Muzzle -->
+  <ellipse cx="200" cy="213" rx="38" ry="28" fill="#FFCC80"/>
+  <!-- Eyes -->
+  <circle cx="178" cy="182" r="13" fill="white"/>
+  <circle cx="222" cy="182" r="13" fill="white"/>
+  <circle cx="181" cy="183" r="8" fill="#4E342E"/>
+  <circle cx="225" cy="183" r="8" fill="#4E342E"/>
+  <circle cx="183" cy="181" r="3" fill="white"/>
+  <circle cx="227" cy="181" r="3" fill="white"/>
+  <!-- Nose -->
+  <ellipse cx="200" cy="208" rx="8" ry="6" fill="#E65100"/>
+  <!-- Smile -->
+  <path d="M186 220 Q200 233 214 220" stroke="#E65100" stroke-width="3" fill="none" stroke-linecap="round"/>
+  <!-- Whiskers -->
+  <line x1="145" y1="210" x2="178" y2="213" stroke="#BF360C" stroke-width="1.5" opacity="0.5"/>
+  <line x1="145" y1="220" x2="178" y2="218" stroke="#BF360C" stroke-width="1.5" opacity="0.5"/>
+  <line x1="255" y1="210" x2="222" y2="213" stroke="#BF360C" stroke-width="1.5" opacity="0.5"/>
+  <line x1="255" y1="220" x2="222" y2="218" stroke="#BF360C" stroke-width="1.5" opacity="0.5"/>
+  <!-- Cheeks -->
+  <circle cx="160" cy="208" r="11" fill="#FFAB40" opacity="0.6"/>
+  <circle cx="240" cy="208" r="11" fill="#FFAB40" opacity="0.6"/>
+  <!-- Paws -->
+  <ellipse cx="155" cy="335" rx="22" ry="14" fill="#FFB300"/>
+  <ellipse cx="245" cy="335" rx="22" ry="14" fill="#FFB300"/>
+  <!-- Quote -->
+  <text x="200" y="373" font-family="Georgia, serif" font-size="14" font-style="italic" text-anchor="middle" fill="#E65100" font-weight="bold">"Roar Loud, Dream Big!"</text>
+</svg>

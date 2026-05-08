@@ -3,6 +3,7 @@ import {
   View, Text, StyleSheet, TextInput, FlatList,
   TouchableOpacity, Image, ActivityIndicator,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { useSearchUsers, useSendFriendRequest } from '../hooks/useFriends';
 import { useToast } from '../context/ToastContext';
 
@@ -70,7 +71,7 @@ export default function SearchUsersScreen() {
   };
 
   return (
-    <View style={styles.container}>
+    <SafeAreaView style={styles.container} edges={['bottom']}>
       <TextInput
         style={styles.searchInput}
         value={query}
@@ -108,7 +109,7 @@ export default function SearchUsersScreen() {
           </View>
         )}
       />
-    </View>
+    </SafeAreaView>
   );
 }
 

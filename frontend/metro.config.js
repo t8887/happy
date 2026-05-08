@@ -3,6 +3,16 @@ const path = require('path');
 
 const config = getDefaultConfig(__dirname);
 
+// ── SVG transformer ───────────────────────────────────────────────────────────
+const { assetExts, sourceExts } = config.resolver;
+config.resolver.assetExts  = assetExts.filter((ext) => ext !== 'svg');
+config.resolver.sourceExts = [...sourceExts, 'svg'];
+config.transformer = {
+  ...config.transformer,
+  babelTransformerPath: require.resolve('react-native-svg-transformer/expo'),
+};
+// ─────────────────────────────────────────────────────────────────────────────
+
 // Zustand v5 is ESM-first: its package `exports` field points to an ESM build
 // that uses `import.meta`, which Metro cannot handle outside native ES modules.
 // Disabling unstable_enablePackageExports makes Metro fall back to the `main`

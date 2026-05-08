@@ -22,6 +22,7 @@
  */
 
 import { createRef } from 'react';
+import { Platform } from 'react-native';
 import * as Notifications from 'expo-notifications';
 
 /** Shared ref passed to NavigationContainer */
@@ -72,6 +73,9 @@ let _subscription = null;
  * Call this once inside a useEffect at the root of the app (inside NavigationContainer).
  */
 export const registerDeepLinkHandler = () => {
+  // expo-notifications is not supported on web
+  if (Platform.OS === 'web') return;
+
   _subscription = Notifications.addNotificationResponseReceivedListener((response) => {
     const data = response.notification.request.content.data;
     const route = resolveRoute(data);

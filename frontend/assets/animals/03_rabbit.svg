@@ -1,0 +1,46 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 400" width="400" height="400">
+  <defs>
+    <radialGradient id="bg3" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#FCE4EC"/>
+      <stop offset="100%" stop-color="#F8BBD0"/>
+    </radialGradient>
+  </defs>
+  <rect width="400" height="400" rx="40" fill="url(#bg3)"/>
+  <circle cx="55" cy="55" r="3" fill="#F06292" opacity="0.5"/>
+  <circle cx="345" cy="75" r="2" fill="#E91E63" opacity="0.4"/>
+  <circle cx="360" cy="345" r="3" fill="#F06292" opacity="0.4"/>
+  <!-- Ears -->
+  <ellipse cx="168" cy="110" rx="22" ry="60" fill="white"/>
+  <ellipse cx="232" cy="110" rx="22" ry="60" fill="white"/>
+  <ellipse cx="168" cy="112" rx="12" ry="48" fill="#F48FB1"/>
+  <ellipse cx="232" cy="112" rx="12" ry="48" fill="#F48FB1"/>
+  <!-- Body -->
+  <ellipse cx="200" cy="290" rx="78" ry="68" fill="white"/>
+  <!-- Belly -->
+  <ellipse cx="200" cy="300" rx="48" ry="45" fill="#FCE4EC"/>
+  <!-- Head -->
+  <circle cx="200" cy="195" r="68" fill="white"/>
+  <!-- Muzzle -->
+  <ellipse cx="200" cy="215" rx="32" ry="24" fill="#FCE4EC"/>
+  <!-- Eyes -->
+  <circle cx="178" cy="185" r="13" fill="white"/>
+  <circle cx="222" cy="185" r="13" fill="white"/>
+  <circle cx="180" cy="186" r="8" fill="#880E4F"/>
+  <circle cx="224" cy="186" r="8" fill="#880E4F"/>
+  <circle cx="182" cy="184" r="3" fill="white"/>
+  <circle cx="226" cy="184" r="3" fill="white"/>
+  <!-- Nose -->
+  <ellipse cx="200" cy="210" rx="6" ry="5" fill="#E91E63"/>
+  <!-- Smile -->
+  <path d="M188 220 Q200 232 212 220" stroke="#AD1457" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+  <!-- Cheeks -->
+  <circle cx="162" cy="210" r="10" fill="#F48FB1" opacity="0.6"/>
+  <circle cx="238" cy="210" r="10" fill="#F48FB1" opacity="0.6"/>
+  <!-- Paws -->
+  <ellipse cx="148" cy="325" rx="20" ry="14" fill="white"/>
+  <ellipse cx="252" cy="325" rx="20" ry="14" fill="white"/>
+  <!-- Tail -->
+  <circle cx="278" cy="305" r="18" fill="white"/>
+  <!-- Quote -->
+  <text x="200" y="370" font-family="Georgia, serif" font-size="14" font-style="italic" text-anchor="middle" fill="#AD1457" font-weight="bold">"Hop Towards Your Dreams!"</text>
+</svg>

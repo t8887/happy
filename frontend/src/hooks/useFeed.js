@@ -8,6 +8,7 @@ export const useFeed = () => {
       const { data } = await api.get('/feed');
       return data;
     },
+    staleTime: 1000 * 60 * 3, // 3 min — feed is slow-moving, use cache freely
   });
 };
 
@@ -16,8 +17,8 @@ export const useStreak = () => {
     queryKey: ['streak'],
     queryFn: async () => {
       const { data } = await api.get('/streak');
-      return data.streak; // { current, lastActiveDate, xp }
+      return data.streak; // { current, longest, lastActiveDate, xp }
     },
-    staleTime: 60 * 1000, // 1 minute — streak doesn't change that often
+    staleTime: 1000 * 60 * 10, // 10 min — streak changes at most once per day
   });
 };
